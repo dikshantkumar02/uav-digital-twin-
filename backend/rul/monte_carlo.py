@@ -37,9 +37,9 @@ DEFAULT_N_SAMPLES: int = 200
 # end-of-life within the horizon, so the MC returns a meaningful
 # (not capped-at-horizon) TTE distribution.
 DEFAULT_HORIZON_HOURS: float = 100_000.0
-# 6 hours per MC step: keeps the (n_samples, n_steps) array
-# tractable (~16,000 steps × 200 samples = 3.2M cells).
-DEFAULT_DT_S: float = 6 * 3600.0
+# 200 hours per MC step: keeps the (n_samples, n_steps) array
+# optimal for real-time performance (500 steps x 200 samples = 100k cells, <5ms).
+DEFAULT_DT_S: float = 200 * 3600.0
 DEFAULT_QUANTILE_LOW: float = 0.05
 DEFAULT_QUANTILE_HIGH: float = 0.95
 # Severity drift per hour (small upward drift, fault accelerates).

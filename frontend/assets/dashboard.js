@@ -2794,7 +2794,7 @@
       engineHealth: 64,
       trend: "Accelerating ⇈",
       confidence: "Very High (Physics-Informed)",
-      recommendation: "Follow approved UAV emergency/maintenance procedure. Step-down throttle to 65% and prepare for optical borescope inspection."
+      recommendation: "Follow approved UAV emergency/maintenance procedure. Inspect thermal margins and prepare for optical borescope inspection."
     },
     {
       id: "alt-03",
