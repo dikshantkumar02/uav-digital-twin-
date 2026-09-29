@@ -237,6 +237,7 @@ def create_app(
         return FileResponse(str(static_index), media_type="text/html")
 
     @app.get("/api/snapshot/latest")
+    @app.get("/telemetry")
     async def snapshot_latest() -> Dict[str, Any]:
         snap = runner.last_snapshot
         if snap is None:
