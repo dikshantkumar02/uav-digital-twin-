@@ -1,0 +1,4 @@
+[console_scripts]
+aero-dt = backend.config.cli:main
+aero-dt-dashboard = backend.dashboard.main:main
+aero-dt-demo = backend.dashboard.sih_demo:main

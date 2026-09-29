@@ -1,0 +1,64 @@
+# =====================================================================
+# Environment model — configuration
+# ---------------------------------------------------------------------
+# Standard-atmosphere model + disturbances used by the mission
+# simulator. All values are prototype defaults.
+# =====================================================================
+
+atmosphere:
+  model: "ISA1976"                # PUBLIC_DATA (ICAO standard atmosphere)
+  sea_level:
+    pressure_pa: 101325.0         # PUBLIC_DATA
+    temperature_k: 288.15         # PUBLIC_DATA
+    density_kg_per_m3: 1.225      # PUBLIC_DATA
+    speed_of_sound_mps: 340.294   # PUBLIC_DATA
+  lapse_rate_k_per_m: 0.0065      # PUBLIC_DATA  (troposphere)
+  tropopause_m: 11000.0           # PUBLIC_DATA
+
+mission:
+  # Default mission profile (waypoints in time + altitude + airspeed).
+  # USER_CONFIGURED at runtime; defaults are SYNTHETIC representative.
+  profile:
+    - t_s: 0
+      altitude_m: 0
+      airspeed_mps: 0
+      throttle: 0.0
+    - t_s: 30
+      altitude_m: 0
+      airspeed_mps: 35
+      throttle: 0.6
+    - t_s: 120
+      altitude_m: 1500
+      airspeed_mps: 55
+      throttle: 0.7
+    - t_s: 600
+      altitude_m: 3500
+      airspeed_mps: 65
+      throttle: 0.65
+    - t_s: 1800
+      altitude_m: 5000
+      airspeed_mps: 60
+      throttle: 0.55
+    - t_s: 3600
+      altitude_m: 3000
+      airspeed_mps: 55
+      throttle: 0.45
+    - t_s: 3900
+      altitude_m: 0
+      airspeed_mps: 35
+      throttle: 0.2
+  initial_seed: 42                # deterministic by default
+
+disturbances:
+  # Atmospheric turbulence (Dryden-like, simplified).
+  turbulence:
+    enabled: true
+    intensity: 0.10               # SYNTHETIC  (light-to-moderate)
+    correlation_time_s: 5.0
+    seed: 42
+  # Discrete gusts.
+  gusts:
+    enabled: true
+    rate_per_hour: 4              # SYNTHETIC
+    amplitude_mps: 6.0            # SYNTHETIC
+    seed: 7

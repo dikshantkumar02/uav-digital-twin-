@@ -1,0 +1,53 @@
+# Hardware interface configuration (PHASE 14).
+# All values are operator-tunable; defaults are runnable from a fresh
+# checkout with the in-process loopback port.
+#
+# The hardware interface is runnable from a fresh checkout even if
+# this file is absent: backend.config.load_hardware_config() falls
+# back to HardwareConfig.defaults() (port="loopback").
+#
+# For real hardware, override `port` with a serial device path:
+#   - macOS:  /dev/cu.usbserial-A50285BI   (or similar)
+#   - Linux:  /dev/ttyUSB0
+#   - Windows: COM3
+
+hardware:
+  # --- Port selection ---
+  # "loopback" is the in-process port pair (see backend.hardware.ports)
+  # used by tests + smoke runs. Replace with a real device path to
+  # talk to a physical engine ECU / data-acquisition unit.
+  port: loopback               # USER_CONFIGURED
+
+  # --- Serial parameters (passed straight to pyserial.Serial) ---
+  baudrate: 115200             # USER_CONFIGURED
+  bytesize: 8
+  parity: N                    # N / E / O / M / S
+  stopbits: 1
+
+  # --- Read behaviour ---
+  read_timeout_s: 0.5          # blocking-read timeout
+  read_chunk_bytes: 4096       # max bytes per read syscall
+
+  # --- Wire protocol ---
+  # CRC-16-CCITT/XMODEM (4 hex digits) is the default. "none" disables
+  # CRC for debugging against a raw stream.
+  crc: ccitt
+
+  # --- Reconnect ---
+  # If the underlying read raises (USB unplug, etc.) the reader thread
+  # sleeps `reconnect_backoff_s` and re-opens the port. Set to false
+  # to surface the first error to the consumer.
+  reconnect_on_error: true
+  reconnect_backoff_s: 1.0
+
+  # --- Channel allowlist ---
+  # None = accept any channel that exists in SENSOR_CHANNELS. Set to
+  # a list of channel names to reject unknown channels at decode time.
+  expected_channels: ~
+
+  provenance: USER_CONFIGURED
+  notes:
+    - "Default port is 'loopback' so the system is runnable from a fresh checkout."
+    - "Switch port to /dev/ttyUSB0 (Linux) or /dev/cu.usbserial-* (macOS) for real hardware."
+    - "Wire format: AERO,1,<seq>,<time_s>,<status>,<ch>=<val>:<mode>,...,*<crc16>\\n"
+    - "See backend.hardware.protocol.FrameCodec for the encoding rules."

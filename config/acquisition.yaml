@@ -1,0 +1,83 @@
+# Embedded telemetry acquisition layer configuration (PHASE 18).
+#
+# All values are operator-tunable. The acquisition layer is runnable from
+# a fresh checkout with the in-process simulator (source: "simulated") so
+# no real hardware is required for development or CI.
+#
+# This module is for MONITORING AND TELEMETRY ACQUISITION ONLY — no
+# aircraft control functionality is implemented here and none will be.
+#
+# For real hardware, switch `source` to "serial" (UART) or "can" (CAN bus)
+# and set the corresponding port/baudrate/channel.
+
+acquisition:
+  # --- Identifiers (per-spec) ---
+  mission_id: "mission-001"        # USER_CONFIGURED
+  vehicle_id: "vehicle-001"
+  engine_id: "engine-001"
+
+  # --- Source selection ---
+  # "simulated" — uses the in-process SensorBundle (no hardware).
+  # "serial"    — real UART, settings under `serial:` below.
+  # "can"       — real CAN bus, settings under `can:` below.
+  source: simulated                # USER_CONFIGURED
+
+  # --- Serial transport (used when source == "serial") ---
+  serial:
+    port: "/dev/ttyUSB0"           # e.g. /dev/cu.usbserial-A50285BI on macOS
+    baudrate: 115200
+    parity: "N"                    # N / E / O
+    stopbits: 1
+    crc: "ccitt"                   # "ccitt" or "none"
+
+  # --- CAN transport (used when source == "can") ---
+  can:
+    interface: "socketcan"
+    channel: "can0"
+    bitrate: 500000
+
+  # --- GPIO / pin assignments ---
+  # The MCU firmware reads its own pin map; this block is purely
+  # informational for the edge. Edit freely.
+  pins:
+    rpm: "PA0"
+    egt: "PA1"
+    cht: "PA2"
+    oil_pressure: "PA3"
+    oil_temperature: "PA4"
+    fuel_flow: "PA5"
+    vibration: "PB0"
+    imu_cs: "PB1"
+    altitude: "PB2"
+    airspeed: "PB3"
+    throttle: "PB4"
+    ambient_temperature: "PB5"
+    ambient_pressure: "PB6"
+
+  # --- Calibration ---
+  default_valid_for_ms: 2592000000   # 30 days
+
+  # --- Sampling (MCU native → bus rate) ---
+  sampling:
+    rpm:               { native_rate_hz: 1000, bus_rate_hz: 100 }
+    egt:               { native_rate_hz: 100,  bus_rate_hz: 10  }
+    cht:               { native_rate_hz: 100,  bus_rate_hz: 10  }
+    oil_pressure:      { native_rate_hz: 100,  bus_rate_hz: 10  }
+    oil_temperature:   { native_rate_hz: 100,  bus_rate_hz: 10  }
+    fuel_flow:         { native_rate_hz: 100,  bus_rate_hz: 10  }
+    vibration:         { native_rate_hz: 2000, bus_rate_hz: 200 }
+    accel_x:           { native_rate_hz: 1000, bus_rate_hz: 100 }
+    accel_y:           { native_rate_hz: 1000, bus_rate_hz: 100 }
+    accel_z:           { native_rate_hz: 1000, bus_rate_hz: 100 }
+    altitude:          { native_rate_hz: 50,   bus_rate_hz: 10  }
+    airspeed:          { native_rate_hz: 50,   bus_rate_hz: 10  }
+    throttle:          { native_rate_hz: 1000, bus_rate_hz: 100 }
+    ambient_temperature: { native_rate_hz: 10, bus_rate_hz: 1   }
+    ambient_pressure:    { native_rate_hz: 10, bus_rate_hz: 1   }
+
+  provenance: USER_CONFIGURED
+  notes:
+    - "Default source is 'simulated' so the system is runnable from a fresh checkout."
+    - "Switch source to 'serial' or 'can' for real hardware."
+    - "Wire format (16-field common schema): see backend.acquisition.TELEMETRY_FIELDS."
+    - "Sensors → MCU → bus → edge → digital twin + AI."

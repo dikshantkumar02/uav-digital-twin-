@@ -1,0 +1,120 @@
+# =====================================================================
+# Representative aero piston engine — configuration
+# ---------------------------------------------------------------------
+# This is NOT a specific classified / DRDO / manufacturer engine.
+# Parameters are tuned for a generic horizontally-opposed aero piston
+# engine in the 100-180 hp class commonly fitted to MALE UAVs.
+# Every numeric field carries a PROVENANCE label:
+#
+#   MEASURED         — taken from a real instrumented test (not provided)
+#   PUBLIC_DATA      — published in open literature / textbooks
+#   PHYSICS_DERIVED  — derived from first principles (e.g. ideal gas)
+#   INTERPOLATED     — interpolated between public / measured points
+#   SYNTHETIC        — synthesised for the prototype; not from a real engine
+#   USER_CONFIGURED  — left to the operator; must be supplied at runtime
+#
+# All values are PROTOTYPE defaults. They are NOT to be treated as
+# representative of any specific certified engine.
+# =====================================================================
+
+engine:
+  model_id: "REPR-OPP-180"
+  description: "Representative 4-cylinder horizontally-opposed aero piston, ~180 hp class"
+  provenance_default: SYNTHETIC
+  notes:
+    - "Not a specific engine. Replace with real maps only if validated data is supplied."
+    - "All thresholds are prototype defaults; calibrate before any real use."
+
+  geometry:
+    cylinders: 4               # PUBLIC_DATA  (typical 4-cyl aero piston layout)
+    displacement_l: 3.6        # SYNTHETIC    (representative 180 hp class)
+    compression_ratio: 8.5     # PUBLIC_DATA  (avgas-friendly, leaded)
+    bore_mm: 95.2              # PUBLIC_DATA  (Lycoming / Continental class)
+    stroke_mm: 95.2            # PUBLIC_DATA
+    redline_rpm: 2700          # PUBLIC_DATA  (typical aero piston redline)
+    idle_rpm: 650              # PUBLIC_DATA
+    rated_rpm: 2400            # SYNTHETIC    (representative max continuous)
+    rated_power_kw: 134        # SYNTHETIC    (~180 hp)
+
+  performance_maps:
+    # Fuel flow vs (RPM, manifold pressure) — representative.
+    # Source: SYNTHETIC — shaped from generic BSFC envelope.
+    bsfc_g_per_kwh:
+      # rows = RPM bins, cols = MAP (inHg) bins
+      rpm_axis:  [1000, 1500, 2000, 2400, 2700]
+      map_axis:  [15.0, 20.0, 25.0, 29.92, 32.0]
+      values:    [
+        [ 520,  480,  450,  430,  425],   # 1000 rpm
+        [ 500,  450,  410,  395,  400],   # 1500 rpm
+        [ 490,  430,  390,  380,  390],   # 2000 rpm
+        [ 510,  440,  400,  385,  400],   # 2400 rpm
+        [ 540,  470,  430,  415,  430],   # 2700 rpm
+      ]
+    # BSFC minimum nominally around 75% rated power (PUBLIC_DATA convention).
+    # The shape above reproduces that envelope.
+
+    # Expected EGT (deg C) vs (RPM, MAP). SYNTHETIC but bounded by public data.
+    egt_map_c:
+      rpm_axis:  [1000, 1500, 2000, 2400, 2700]
+      map_axis:  [15.0, 20.0, 25.0, 29.92, 32.0]
+      values:    [
+        [ 480,  560,  620,  660,  690],
+        [ 510,  590,  650,  690,  720],
+        [ 540,  620,  680,  720,  750],
+        [ 570,  650,  710,  745,  775],
+        [ 600,  680,  740,  775,  810],
+      ]
+
+    # Expected CHT (deg C) vs (RPM, MAP). SYNTHETIC; bounded by 200-260 C range.
+    cht_map_c:
+      rpm_axis:  [1000, 1500, 2000, 2400, 2700]
+      map_axis:  [15.0, 20.0, 25.0, 29.92, 32.0]
+      values:    [
+        [ 130,  150,  170,  180,  185],
+        [ 150,  170,  190,  205,  210],
+        [ 165,  185,  210,  225,  230],
+        [ 175,  200,  225,  240,  250],
+        [ 190,  215,  240,  255,  265],
+      ]
+
+  # Throttle -> manifold pressure transfer (dimensionless lever to inHg).
+  # `gain_inhg_per_unit` is the fraction of the available MAP range
+  # (max_map_inhg - idle_map_inhg) reached at full throttle. 1.0 means
+  # the throttle is mapped linearly to the full (idle .. max) range;
+  # values < 1.0 produce a less aggressive throttle response.
+  throttle_to_map:
+    # PHYSICS_DERIVED shape; gains are SYNTHETIC and tunable.
+    gain_inhg_per_unit: 1.0
+    idle_map_inhg: 12.0
+    max_map_inhg: 29.92
+    dead_zone: 0.02
+
+  # Engine inertia / first-order lag.
+  dynamics:
+    rpm_time_constant_s: 1.5   # PHYSICS_DERIVED  (rotational inertia approximation)
+    thermal_time_constant_s: 90.0  # PHYSICS_DERIVED  (thermal mass lag)
+    oil_time_constant_s: 60.0      # PHYSICS_DERIVED
+
+  # Operating envelopes (used only for sanity checks / warnings).
+  limits:
+    egt_max_c: 870        # PUBLIC_DATA  (aviation EGT redline convention)
+    cht_max_c: 260        # PUBLIC_DATA
+    oil_temp_min_c: 40    # PUBLIC_DATA
+    oil_temp_max_c: 120   # PUBLIC_DATA
+    oil_pressure_min_psi: 25   # PUBLIC_DATA
+    oil_pressure_max_psi: 100  # PUBLIC_DATA
+    vibration_rms_max_g: 6.0   # SYNTHETIC  (prototype envelope)
+
+  # Lubrication subsystem.
+  lubrication:
+    oil_capacity_l: 7.5
+    nominal_pressure_psi: 60
+    pressure_rpm_slope: 0.02  # SYNTHETIC
+    pressure_temp_drop_per_c: 0.3  # SYNTHETIC (oil thins as it heats)
+
+  # Degradation model.
+  degradation:
+    base_wear_per_hour: 1.0e-5      # SYNTHETIC
+    wear_temp_factor_per_c: 2.0e-6  # SYNTHETIC  (Arrhenius-like)
+    wear_rpm_factor_per_rpm: 1.0e-9 # SYNTHETIC
+    max_wear: 1.0                   # normalised

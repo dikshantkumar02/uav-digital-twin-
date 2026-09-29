@@ -1,0 +1,103 @@
+# =====================================================================
+# Fault injection configuration
+# ---------------------------------------------------------------------
+# All severities are PROTOTYPE defaults (SYNTHETIC). They are designed
+# to be large enough to be detectable but NOT large enough to claim any
+# real engine behaviour.
+# =====================================================================
+
+faults:
+  HEALTHY:
+    enabled: true
+    description: "No fault injected."
+
+  ENGINE_DEGRADATION:
+    enabled: true
+    description: "Slow wear: BSFC +3% to +20%, EGT +20C to +80C, vibration +10% to +80%."
+    parameters:
+      severity_range: [0.05, 0.6]
+      onset_time_s_range: [300, 1500]
+      progression_model: "linear"
+      effects:
+        bsfc_multiplier: [1.03, 1.20]
+        egt_offset_c: [20, 80]
+        cht_offset_c: [5, 30]
+        vibration_multiplier: [1.10, 1.80]
+        rpm_efficiency_drop: [0.02, 0.10]
+
+  OVERHEATING:
+    enabled: true
+    description: "Cooling system fault: CHT/EGT rise faster than map predicts."
+    parameters:
+      severity_range: [0.1, 0.7]
+      onset_time_s_range: [60, 600]
+      effects:
+        egt_offset_c: [60, 200]
+        cht_offset_c: [30, 100]
+        oil_temp_offset_c: [10, 30]
+        vibration_multiplier: [1.00, 1.10]
+
+  LUBRICATION_PRESSURE_ANOMALY:
+    enabled: true
+    description: "Oil pressure drop, possible bearing wear signature."
+    parameters:
+      severity_range: [0.1, 0.6]
+      onset_time_s_range: [60, 600]
+      effects:
+        oil_pressure_offset_psi: [-25, -8]
+        oil_temp_offset_c: [5, 20]
+        vibration_multiplier: [1.10, 1.40]
+
+  VIBRATION_ENGINE_ANOMALY:
+    enabled: true
+    description: "Engine-borne vibration (NOT due to turbulence)."
+    parameters:
+      severity_range: [0.1, 0.7]
+      onset_time_s_range: [60, 600]
+      effects:
+        vibration_multiplier: [1.30, 2.50]
+        bsfc_multiplier: [1.02, 1.10]
+        rpm_efficiency_drop: [0.01, 0.05]
+
+  PERFORMANCE_LOSS:
+    enabled: true
+    description: "Reduced power output at given throttle."
+    parameters:
+      severity_range: [0.1, 0.6]
+      onset_time_s_range: [120, 900]
+      effects:
+        rpm_efficiency_drop: [0.08, 0.25]
+        bsfc_multiplier: [1.05, 1.15]
+        egt_offset_c: [10, 50]
+
+  SENSOR_FAULT:
+    enabled: true
+    description: "Sensor injection — applies to a chosen channel."
+    parameters:
+      modes:
+        - "drift"
+        - "bias"
+        - "stuck"
+        - "spike_burst"
+        - "dropout_burst"
+        - "calibration_error"
+      per_mode:
+        drift_rate_range: [0.05, 1.0]      # units / second of fault
+        bias_offset_range: [5.0, 30.0]
+        stuck_value: null                  # falls back to nominal
+        spike_burst_rate: 0.05
+        spike_burst_amplitude: [5.0, 30.0]
+        dropout_burst_rate: 0.10
+        calibration_error_range: [0.05, 0.20]
+
+  ENVIRONMENTAL_DISTURBANCE:
+    enabled: true
+    description: "Turbulence / gust / thermal disturbance; NOT a fault."
+    parameters:
+      turbulence_intensity_range: [0.05, 0.40]
+      gust_amplitude_range: [4.0, 15.0]
+      duration_s_range: [10, 120]
+
+  UNKNOWN_INSUFFICIENT_EVIDENCE:
+    enabled: true
+    description: "Residual patterns not matching any known class."

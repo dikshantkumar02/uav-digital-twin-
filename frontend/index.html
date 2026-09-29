@@ -1,0 +1,1485 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>UAV Piston Digital Twin — Control Room</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link
+    href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&display=swap"
+    rel="stylesheet">
+  <link rel="stylesheet" href="/assets/dashboard.css" />
+</head>
+
+<body>
+
+  <div id="app-layout">
+
+    <!-- ============================================================ -->
+    <!-- SIDEBAR NAVIGATION PANEL                                     -->
+    <!-- ============================================================ -->
+    <aside id="sidebar-nav" aria-label="Main Navigation">
+      <div class="sidebar-brand">
+        <div class="brand-badge">
+          <svg class="brand-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+            stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+            <polygon points="12 2 2 7 12 12 22 7 12 2"></polygon>
+            <polyline points="2 17 12 22 22 17"></polyline>
+            <polyline points="2 12 12 17 22 12"></polyline>
+          </svg>
+        </div>
+        <div class="brand-info">
+          <span class="brand-title">UAV Piston</span>
+          <span class="brand-sub">DIGITAL TWIN v2.4</span>
+        </div>
+      </div>
+
+      <div class="nav-section-title">CONTROL ROOM</div>
+
+      <nav class="nav-links">
+        <button class="nav-item active" data-section="overview" type="button">
+          <svg class="nav-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+            stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="3" y="3" width="7" height="7"></rect>
+            <rect x="14" y="3" width="7" height="7"></rect>
+            <rect x="14" y="14" width="7" height="7"></rect>
+            <rect x="3" y="14" width="7" height="7"></rect>
+          </svg>
+          <span class="nav-label">Mission Overview</span>
+        </button>
+
+        <button class="nav-item" data-section="replay" type="button">
+          <svg class="nav-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+            stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <polygon points="5 3 19 12 5 21 5 3"></polygon>
+          </svg>
+          <span class="nav-label">Mission Replay</span>
+          <!-- <span class="nav-pill replay-pill">MVP</span> -->
+        </button>
+
+        <button class="nav-item" data-section="charts" type="button">
+          <svg class="nav-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+            stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"></polyline>
+          </svg>
+          <span class="nav-label">Telemetry Charts</span>
+          <!-- <span class="nav-pill">8 CH</span> -->
+        </button>
+
+        <button class="nav-item" data-section="diagnostics" type="button">
+          <svg class="nav-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+            stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
+          </svg>
+          <span class="nav-label">Diagnostics & Subsystems</span>
+        </button>
+
+        <button class="nav-item" data-section="maintenance" type="button">
+          <svg class="nav-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+            stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path
+              d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z">
+            </path>
+          </svg>
+          <span class="nav-label">Predictive Maintenance</span>
+          <!-- <span class="nav-pill">RUL</span> -->
+        </button>
+
+        <button class="nav-item" data-section="environment" type="button">
+          <svg class="nav-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+            stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M17.5 19H9a7 7 0 1 1 6.71-9h1.79a4.5 4.5 0 1 1 0 9Z"></path>
+          </svg>
+          <span class="nav-label">Environment & Flight</span>
+        </button>
+        <button class="nav-item" data-section="alerts" type="button">
+          <svg class="nav-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+            stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path>
+            <line x1="12" y1="9" x2="12" y2="13"></line>
+            <line x1="12" y1="17" x2="12.01" y2="17"></line>
+          </svg>
+          <span class="nav-label">Alerts</span>
+          <span class="nav-pill pill-alert" id="nav-alerts-badge">2 ACT</span>
+        </button>
+      </nav>
+
+      <div class="sidebar-spacer"></div>
+
+      <div class="sidebar-footer">
+        <div class="sidebar-status-card">
+          <div class="status-indicator">
+            <span class="pulse-beacon"></span>
+            <span class="status-name">WEBSOCKET FEED</span>
+          </div>
+          <div class="status-sub" id="conn-status">connecting…</div>
+        </div>
+      </div>
+    </aside>
+
+    <!-- ============================================================ -->
+    <!-- MAIN VIEWPORT                                                -->
+    <!-- ============================================================ -->
+    <div id="main-viewport">
+
+      <!-- PERSISTENT TOP HEADER -->
+      <header id="header">
+        <div class="live-pill" title="Live Telemetry Ingestion Active">
+          <span class="pulse-beacon"></span>
+          <span class="pulse-label">LIVE TELEMETRY</span>
+        </div>
+
+        <div class="header-divider"></div>
+
+        <div class="meta-tag">
+          <span class="meta-label">PHASE</span>
+          <span class="meta-value" id="meta-mission-phase">—</span>
+        </div>
+
+        <div class="meta-tag">
+          <span class="meta-label">MET</span>
+          <span class="meta-value mono" id="meta-time">t = 0.0 s</span>
+        </div>
+
+        <span class="grow"></span>
+
+        <div class="meta-tag" id="meta-alert-counts" title="Active alerts">
+          <span class="meta-label">ALERTS</span>
+          <span class="meta-value">0 / 0 / 0</span>
+        </div>
+
+        <button id="alert-center-toggle" type="button" title="Open alert center">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"
+            stroke-linecap="round" stroke-linejoin="round">
+            <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path>
+            <path d="M13.73 21a2 2 0 0 1-3.46 0"></path>
+          </svg>
+          <span>Alerts</span>
+          <span class="count zero" id="alert-center-count">0</span>
+        </button>
+
+        <div class="scenario-selector-wrap">
+          <label class="scenario-label" for="scenario-select">SCENARIO</label>
+          <div class="custom-select-wrap">
+            <select id="scenario-select">
+              <option>loading…</option>
+            </select>
+            <svg class="select-chevron" width="10" height="6" viewBox="0 0 10 6" fill="none" stroke="currentColor"
+              stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M1 1L5 5L9 1" />
+            </svg>
+          </div>
+        </div>
+      </header>
+
+      <!-- PERSISTENT TOP KPI STRIP (4 STATUS TILES) -->
+      <section id="top-strip">
+        <div class="tile" id="tile-engine">
+          <div class="tile-header">
+            <span class="tile-label">Engine Status</span>
+            <span class="tile-chip" id="tile-engine-chip">—</span>
+          </div>
+          <div class="tile-value" id="tile-engine-value">—</div>
+          <div class="tile-bar-track">
+            <div class="tile-bar-fill fill-engine" id="tile-engine-bar" style="width: 0%"></div>
+          </div>
+          <div class="tile-sub" id="tile-engine-sub">rpm / MAP</div>
+        </div>
+        <div class="tile" id="tile-health">
+          <div class="tile-header">
+            <span class="tile-label">Health Index</span>
+            <span class="tile-chip" id="tile-health-chip">—</span>
+          </div>
+          <div class="tile-value" id="tile-health-value">—</div>
+          <div class="tile-bar-track">
+            <div class="tile-bar-fill fill-health" id="tile-health-bar" style="width: 0%"></div>
+          </div>
+          <div class="tile-sub" id="tile-health-sub">trend: —</div>
+        </div>
+        <div class="tile" id="tile-risk">
+          <div class="tile-header">
+            <span class="tile-label">Mission Risk</span>
+            <span class="tile-chip" id="tile-risk-chip">—</span>
+          </div>
+          <div class="tile-value" id="tile-risk-value">—</div>
+          <div class="tile-bar-track">
+            <div class="tile-bar-fill fill-risk" id="tile-risk-bar" style="width: 0%"></div>
+          </div>
+          <div class="tile-sub" id="tile-risk-sub">level: —</div>
+        </div>
+        <div class="tile" id="tile-rul">
+          <div class="tile-header">
+            <span class="tile-label">Remaining Useful Life</span>
+            <span class="tile-chip" id="tile-rul-chip">—</span>
+          </div>
+          <div class="tile-value" id="tile-rul-value">—</div>
+          <div class="tile-bar-track">
+            <div class="tile-bar-fill fill-rul" id="tile-rul-bar" style="width: 0%"></div>
+          </div>
+          <div class="tile-sub" id="tile-rul-sub">range: —</div>
+        </div>
+      </section>
+
+      <!-- ============================================================ -->
+      <!-- SECTION 1: MISSION OVERVIEW                                  -->
+      <!-- ============================================================ -->
+      <div class="view-section active" id="view-overview">
+        <div class="overview-layout">
+          <!-- Primary Channels with Sparklines -->
+          <aside id="left-col" class="card">
+            <div class="card-header">
+              <h2>Primary Channels</h2>
+              <span class="card-tag">TELEMETRY</span>
+            </div>
+            <div class="channels-stack">
+              <div class="channel">
+                <div class="channel-info">
+                  <div class="name">RPM</div>
+                  <div class="delta" id="ch-rpm-delta">—</div>
+                </div>
+                <div class="channel-readout">
+                  <div class="value" id="ch-rpm-value">—</div>
+                  <div class="unit" id="ch-rpm-unit">rpm</div>
+                </div>
+                <div class="spark"><canvas id="ch-rpm-spark"></canvas></div>
+              </div>
+              <div class="channel">
+                <div class="channel-info">
+                  <div class="name">Throttle</div>
+                  <div class="delta" id="ch-throttle-delta">—</div>
+                </div>
+                <div class="channel-readout">
+                  <div class="value" id="ch-throttle-value">—</div>
+                  <div class="unit" id="ch-throttle-unit">%</div>
+                </div>
+                <div class="spark"><canvas id="ch-throttle-spark"></canvas></div>
+              </div>
+              <div class="channel">
+                <div class="channel-info">
+                  <div class="name">Fuel Flow</div>
+                  <div class="delta" id="ch-fuel-delta">—</div>
+                </div>
+                <div class="channel-readout">
+                  <div class="value" id="ch-fuel-value">—</div>
+                  <div class="unit" id="ch-fuel-unit">L/h</div>
+                </div>
+                <div class="spark"><canvas id="ch-fuel-spark"></canvas></div>
+              </div>
+              <div class="channel">
+                <div class="channel-info">
+                  <div class="name">Oil Pressure</div>
+                  <div class="delta" id="ch-oilp-delta">—</div>
+                </div>
+                <div class="channel-readout">
+                  <div class="value" id="ch-oilp-value">—</div>
+                  <div class="unit" id="ch-oilp-unit">psi</div>
+                </div>
+                <div class="spark"><canvas id="ch-oilp-spark"></canvas></div>
+              </div>
+              <div class="channel">
+                <div class="channel-info">
+                  <div class="name">Oil Temp</div>
+                  <div class="delta" id="ch-oilt-delta">—</div>
+                </div>
+                <div class="channel-readout">
+                  <div class="value" id="ch-oilt-value">—</div>
+                  <div class="unit" id="ch-oilt-unit">°C</div>
+                </div>
+                <div class="spark"><canvas id="ch-oilt-spark"></canvas></div>
+              </div>
+            </div>
+          </aside>
+
+          <!-- Operations Snapshot Cards -->
+          <div class="overview-center">
+            <div class="card">
+              <div class="card-header">
+                <h2>Mission Timeline & Phase</h2>
+                <span class="card-tag">FLIGHT OPS</span>
+              </div>
+              <div class="timeline">
+                <div class="fill" id="timeline-fill" style="width:0%"></div>
+              </div>
+              <div class="timeline-meta">
+                <span class="k">CURRENT PHASE</span>
+                <span class="v" id="timeline-phase">—</span>
+              </div>
+            </div>
+
+            <div class="overview-cards-row">
+              <div class="card">
+                <div class="card-header">
+                  <h2>Active Alerts Snapshot</h2>
+                  <span class="card-tag">STATUS</span>
+                </div>
+                <div id="alerts-list">
+                  <div class="alert-empty">No active conditions.</div>
+                </div>
+              </div>
+
+              <div class="card">
+                <div class="card-header">
+                  <h2>Event Log Stream</h2>
+                  <span class="card-tag">LIVE</span>
+                </div>
+                <div id="events-list">
+                  <div class="insufficient">No events recorded</div>
+                </div>
+              </div>
+            </div>
+
+            <div class="overview-cards-row">
+              <div class="card" id="bottom-conf">
+                <div class="card-header">
+                  <h2>Digital Twin Model Confidence</h2>
+                  <span class="card-tag">FIDELITY</span>
+                </div>
+                <div class="conf-bar">
+                  <div class="fill" id="model-conf-fill" style="width:0%"></div>
+                </div>
+                <div class="conf-row">
+                  <span class="k">Aggregated Confidence</span>
+                  <span class="v" id="model-conf-value">—</span>
+                </div>
+              </div>
+
+              <div class="card" id="bottom-latency">
+                <div class="card-header">
+                  <h2>Pipeline Telemetry Latency</h2>
+                  <span class="card-tag">REALTIME</span>
+                </div>
+                <div id="latency-body"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ============================================================ -->
+      <!-- SECTION 2: TELEMETRY CHARTS                                  -->
+      <!-- ============================================================ -->
+      <div class="view-section" id="view-charts">
+        <div class="section-top-bar">
+          <div class="section-title-wrap">
+            <h2>Telemetry Channels Deep-Dive</h2>
+            <span class="section-subtitle">Real-time dynamic twin telemetry graphs with expected baseline
+              tracking</span>
+          </div>
+        </div>
+        <main id="center-col">
+          <div class="chart-card">
+            <div class="chart-header">
+              <span class="chart-code">CH-01</span>
+              <h3>RPM — actual vs expected</h3>
+            </div>
+            <div class="canvas-wrap"><canvas id="chart-rpm"></canvas></div>
+          </div>
+          <div class="chart-card">
+            <div class="chart-header">
+              <span class="chart-code">CH-02</span>
+              <h3>EGT — actual vs expected (°C)</h3>
+            </div>
+            <div class="canvas-wrap"><canvas id="chart-egt"></canvas></div>
+          </div>
+          <div class="chart-card">
+            <div class="chart-header">
+              <span class="chart-code">CH-03</span>
+              <h3>CHT — cylinder head temp (°C)</h3>
+            </div>
+            <div class="canvas-wrap"><canvas id="chart-cht"></canvas></div>
+          </div>
+          <div class="chart-card">
+            <div class="chart-header">
+              <span class="chart-code">CH-04</span>
+              <h3>Oil Pressure — trend (psi)</h3>
+            </div>
+            <div class="canvas-wrap"><canvas id="chart-oilp"></canvas></div>
+          </div>
+          <div class="chart-card">
+            <div class="chart-header">
+              <span class="chart-code">CH-05</span>
+              <h3>Fuel Flow — actual vs expected (L/h)</h3>
+            </div>
+            <div class="canvas-wrap"><canvas id="chart-fuel"></canvas></div>
+          </div>
+          <div class="chart-card">
+            <div class="chart-header">
+              <span class="chart-code">CH-06</span>
+              <h3>Vibration + IMU correlation</h3>
+            </div>
+            <div class="canvas-wrap"><canvas id="chart-vib-imu"></canvas></div>
+          </div>
+          <div class="chart-card">
+            <div class="chart-header">
+              <span class="chart-code">CH-07</span>
+              <h3>Health Index — composite score</h3>
+            </div>
+            <div class="canvas-wrap"><canvas id="chart-health"></canvas></div>
+          </div>
+          <div class="chart-card">
+            <div class="chart-header">
+              <span class="chart-code">CH-08</span>
+              <h3>Remaining Useful Life — range (h)</h3>
+            </div>
+            <div class="canvas-wrap"><canvas id="chart-rul"></canvas></div>
+          </div>
+        </main>
+      </div>
+
+      <!-- ============================================================ -->
+      <!-- SECTION 3: DIAGNOSTICS & SUBSYSTEMS                          -->
+      <!-- ============================================================ -->
+      <div class="view-section" id="view-diagnostics">
+        <div class="section-top-bar">
+          <div class="section-title-wrap">
+            <h2>Diagnostics & Subsystems Health</h2>
+            <span class="section-subtitle">Real-time risk attribution, anomaly classification, and hardware
+              integrity</span>
+          </div>
+        </div>
+        <div class="diagnostics-grid">
+          <div class="card">
+            <div class="card-header">
+              <h2>Current Diagnosis & Risk Drivers</h2>
+              <span class="card-tag">ANALYTICS</span>
+            </div>
+            <table id="risk-drivers-table">
+              <thead>
+                <tr>
+                  <th>Signal</th>
+                  <th class="num">Value</th>
+                  <th class="num">Contrib.</th>
+                  <th>Sev.</th>
+                </tr>
+              </thead>
+              <tbody id="risk-drivers-body"></tbody>
+            </table>
+          </div>
+
+          <div class="card">
+            <div class="card-header">
+              <h2>Subsystems Health Integrity</h2>
+              <span class="card-tag">ASSETS</span>
+            </div>
+            <div id="subsystems"></div>
+          </div>
+
+          <div class="card">
+            <div class="card-header">
+              <h2>Fault Probabilities</h2>
+              <span class="card-tag">CLASSIFIER</span>
+            </div>
+            <table>
+              <thead>
+                <tr>
+                  <th>Class</th>
+                  <th class="num">Prob.</th>
+                </tr>
+              </thead>
+              <tbody id="fault-probabilities-body"></tbody>
+            </table>
+          </div>
+
+          <div class="card">
+            <div class="card-header">
+              <h2>Hardware Sensor Integrity</h2>
+              <span class="card-tag">HARDWARE</span>
+            </div>
+            <div class="sensor-grid" id="sensor-health-body"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ============================================================ -->
+      <!-- SECTION 4: ENVIRONMENT & FLIGHT                              -->
+      <!-- ============================================================ -->
+      <div class="view-section" id="view-environment">
+        <div class="section-top-bar">
+          <div class="section-title-wrap">
+            <h2>Environmental & Flight Conditions</h2>
+            <span class="section-subtitle">Atmospheric parameters, turbulence, aerodynamic disturbances, and
+              airspeed</span>
+          </div>
+        </div>
+        <div class="environment-grid">
+          <div class="card env-card-main">
+            <div class="card-header">
+              <h2>Atmospheric Telemetry</h2>
+              <span class="card-tag">WEATHER</span>
+            </div>
+            <div class="env-stack">
+              <div class="env-row"><span class="k">Altitude</span><span class="v" id="env-alt">—</span></div>
+              <div class="env-row"><span class="k">Airspeed</span><span class="v" id="env-airspeed">—</span></div>
+              <div class="env-row"><span class="k">Ambient Temperature</span><span class="v" id="env-temp">—</span>
+              </div>
+              <div class="env-row"><span class="k">Ambient Pressure</span><span class="v" id="env-pressure">—</span>
+              </div>
+              <div class="env-row"><span class="k">Wind (total)</span><span class="v" id="env-wind">—</span></div>
+              <div class="env-row"><span class="k">Vertical Acceleration</span><span class="v" id="env-vac">—</span>
+              </div>
+              <div class="env-row"><span class="k">Gust Active</span><span class="v" id="env-gust">—</span></div>
+            </div>
+          </div>
+
+          <div class="card env-info-card">
+            <div class="card-header">
+              <h2>Flight Regime & Airspace</h2>
+              <span class="card-tag">AERODYNAMICS</span>
+            </div>
+            <div class="env-metrics-grid">
+              <div class="env-stat-box">
+                <span class="stat-label">Barometric Ref</span>
+                <span class="stat-val">Standard 1013 hPa</span>
+              </div>
+              <div class="env-stat-box">
+                <span class="stat-label">Turbulence Class</span>
+                <span class="stat-val">Atmospheric Disturbance</span>
+              </div>
+              <div class="env-stat-box">
+                <span class="stat-label">Twin Correction</span>
+                <span class="stat-val">Dynamic Altitude Compensation</span>
+              </div>
+              <div class="env-stat-box">
+                <span class="stat-label">Sensor Drift</span>
+                <span class="stat-val">Zero Corrected</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ============================================================ -->
+      <!-- SECTION: PREDICTIVE MAINTENANCE                              -->
+      <!-- ============================================================ -->
+      <div class="view-section" id="view-maintenance">
+        <div class="section-top-bar">
+          <div class="section-title-wrap">
+            <h2>Predictive Maintenance & Life Cycle</h2>
+            <span class="section-subtitle">Real-time Remaining Useful Life (RUL) estimation, wear rate accumulation, and
+              service advisories</span>
+          </div>
+        </div>
+
+        <div class="maintenance-grid">
+          <!-- Main Life Expectancy & Advisory Card -->
+          <div class="card maint-hero-card">
+            <div class="card-header">
+              <h2>Remaining Useful Life & Wear Projection</h2>
+              <span class="card-tag" id="maint-model-status">CLOSED_FORM</span>
+            </div>
+            <div class="maint-hero-body">
+              <div class="maint-kpi-block">
+                <span class="maint-kpi-label">TIME TO INSPECTION / OVERHAUL</span>
+                <div class="maint-kpi-val" id="maint-tte-val">— h</div>
+                <div class="maint-kpi-bounds" id="maint-tte-bounds">Confidence Bounds: Lower — h · Upper — h</div>
+              </div>
+              <div class="maint-wear-block">
+                <div class="maint-meta-row">
+                  <span class="k">Accumulated Wear Rate</span>
+                  <span class="v mono" id="maint-wear-rate">— / hr</span>
+                </div>
+                <div class="maint-meta-row">
+                  <span class="k">Degradation Trend</span>
+                  <span class="v mono" id="maint-trend">—</span>
+                </div>
+                <div class="maint-meta-row">
+                  <span class="k">Model Confidence</span>
+                  <span class="v mono" id="maint-confidence">—</span>
+                </div>
+              </div>
+            </div>
+            <div class="maint-action-box" id="maint-action-box">
+              <div class="action-header">
+                <span class="action-icon">⚠</span>
+                <span class="action-title" id="maint-action-title">MAINTENANCE ADVISORY</span>
+              </div>
+              <p class="action-desc" id="maint-action-desc">Awaiting real-time telemetry stream to compute advisory
+                protocol…</p>
+            </div>
+          </div>
+          <!-- Featured Maintenance Interval Highlights -->
+          <div class="card maint-schedule-card">
+            <div class="card-header maint-section-hdr">
+              <div class="maint-header-left">
+                <h2>Priority Service & Maintenance Intervals</h2>
+                <span class="maint-header-badge">CRITICAL PROTOCOLS</span>
+              </div>
+              <span class="card-tag">FAA / EASA PROGRESSIVE INSPECTIONS</span>
+            </div>
+
+            <div class="maint-featured-grid" id="maint-tasks-list">
+              <!-- 1. Oil Spectral Analysis -->
+              <div class="maint-card-featured" id="card-task-oil">
+                <div class="maint-card-top">
+                  <div class="maint-card-icon oil-icon">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                      stroke-linecap="round" stroke-linejoin="round">
+                      <path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z"></path>
+                    </svg>
+                  </div>
+                  <span class="interval-tag tag-50h">50 H INTERVAL</span>
+                  <span class="task-status chip" id="maint-task-oil-status">ON SCHEDULE</span>
+                </div>
+                <h3 class="maint-featured-title">Oil Spectral Analysis & Filter Cut</h3>
+                <p class="maint-featured-desc">Spectrometric oil analysis for iron/copper bearing wear & filter pleat
+                  debris.</p>
+                <div class="maint-countdown-wrap">
+                  <div class="maint-countdown-header">
+                    <span class="maint-countdown-label">TIME UNTIL SERVICE</span>
+                    <span class="maint-countdown-val" id="maint-task-oil">~50 h</span>
+                  </div>
+                  <div class="maint-bar-track">
+                    <div class="maint-bar-fill fill-oil" id="maint-task-oil-bar" style="width: 100%;"></div>
+                  </div>
+                </div>
+                <div class="maint-card-footer">
+                  <span class="maint-footer-spec">SPEC: ASTM D5185 / SAE 20W-50</span>
+                </div>
+              </div>
+
+              <!-- 2. Spark Plugs Gap -->
+              <div class="maint-card-featured" id="card-task-plugs">
+                <div class="maint-card-top">
+                  <div class="maint-card-icon plugs-icon">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                      stroke-linecap="round" stroke-linejoin="round">
+                      <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon>
+                    </svg>
+                  </div>
+                  <span class="interval-tag tag-100h">100 H INTERVAL</span>
+                  <span class="task-status chip" id="maint-task-plugs-status">ON SCHEDULE</span>
+                </div>
+                <h3 class="maint-featured-title">Spark Plugs Gap & Ignition Check</h3>
+                <p class="maint-featured-desc">Electrode erosion check, gap calibration (0.018″), and dual-magneto
+                  timing sync.</p>
+                <div class="maint-countdown-wrap">
+                  <div class="maint-countdown-header">
+                    <span class="maint-countdown-label">TIME UNTIL SERVICE</span>
+                    <span class="maint-countdown-val" id="maint-task-plugs">~100 h</span>
+                  </div>
+                  <div class="maint-bar-track">
+                    <div class="maint-bar-fill fill-plugs" id="maint-task-plugs-bar" style="width: 100%;"></div>
+                  </div>
+                </div>
+                <div class="maint-card-footer">
+                  <span class="maint-footer-spec">SPEC: 0.018″ ± 0.002″ / 25° BTDC</span>
+                </div>
+              </div>
+
+              <!-- 3. Cylinder Compression -->
+              <div class="maint-card-featured" id="card-task-comp">
+                <div class="maint-card-top">
+                  <div class="maint-card-icon comp-icon">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                      stroke-linecap="round" stroke-linejoin="round">
+                      <circle cx="12" cy="12" r="10"></circle>
+                      <path d="M12 6v6l4 2"></path>
+                    </svg>
+                  </div>
+                  <span class="interval-tag tag-100h">100 H INTERVAL</span>
+                  <span class="task-status chip" id="maint-task-comp-status">ON SCHEDULE</span>
+                </div>
+                <h3 class="maint-featured-title">Cylinder Differential Compression Test</h3>
+                <p class="maint-featured-desc">Differential pressure seal test (80 psi base) across piston rings and
+                  valve seats.</p>
+                <div class="maint-countdown-wrap">
+                  <div class="maint-countdown-header">
+                    <span class="maint-countdown-label">TIME UNTIL SERVICE</span>
+                    <span class="maint-countdown-val" id="maint-task-comp">~100 h</span>
+                  </div>
+                  <div class="maint-bar-track">
+                    <div class="maint-bar-fill fill-comp" id="maint-task-comp-bar" style="width: 100%;"></div>
+                  </div>
+                </div>
+                <div class="maint-card-footer">
+                  <span class="maint-footer-spec">SPEC: min 60/80 psi (FAA AC 43.13)</span>
+                </div>
+              </div>
+
+              <!-- 4. Exhaust Valve Borescope -->
+              <div class="maint-card-featured" id="card-task-valve">
+                <div class="maint-card-top">
+                  <div class="maint-card-icon valve-icon">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                      stroke-linecap="round" stroke-linejoin="round">
+                      <circle cx="12" cy="12" r="3"></circle>
+                      <path d="M19.07 4.93a10 10 0 0 1 0 14.14M4.93 4.93a10 10 0 0 0 0 14.14"></path>
+                    </svg>
+                  </div>
+                  <span class="interval-tag tag-200h">200 H INTERVAL</span>
+                  <span class="task-status chip" id="maint-task-valve-status">ON SCHEDULE</span>
+                </div>
+                <h3 class="maint-featured-title">Exhaust Valve Borescope Optical Inspection</h3>
+                <p class="maint-featured-desc">High-resolution optical borescope inspection for asymmetric heat distress
+                  & guide wear.</p>
+                <div class="maint-countdown-wrap">
+                  <div class="maint-countdown-header">
+                    <span class="maint-countdown-label">TIME UNTIL SERVICE</span>
+                    <span class="maint-countdown-val" id="maint-task-valve">~200 h</span>
+                  </div>
+                  <div class="maint-bar-track">
+                    <div class="maint-bar-fill fill-valve" id="maint-task-valve-bar" style="width: 100%;"></div>
+                  </div>
+                </div>
+                <div class="maint-card-footer">
+                  <span class="maint-footer-spec">SPEC: HD Optics / Rotator S/B 388</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ============================================================ -->
+      <!-- SECTION: MISSION REPLAY (MVP)                                -->
+      <!-- ============================================================ -->
+      <div class="view-section" id="view-replay">
+        <div class="section-top-bar replay-top-bar">
+          <div class="section-title-wrap">
+            <div class="title-with-badge">
+              <h2>Mission Replay & AI Anomaly Analysis</h2>
+              <span class="badge badge-accent">POST-FLIGHT TWIN REPLAY</span>
+              <span class="badge badge-info">MVP</span>
+            </div>
+            <span class="section-subtitle">Tactical flight trajectory replay, synchronized aero-piston telemetry,
+              anomaly identification, and mission debrief reporting</span>
+          </div>
+
+          <div class="replay-controls-header">
+            <div class="mission-select-wrap">
+              <label for="replay-mission-select" class="replay-select-label">Select Sortie:</label>
+              <select id="replay-mission-select" class="replay-mission-dropdown">
+                <option value="mission_07" selected>Sortie #07: Reconnaissance Patrol (CHT & Valve Anomaly)</option>
+                <option value="mission_12">Sortie #12: High-Altitude Ingress (Thermal & Oil P Drop)</option>
+                <option value="mission_03">Sortie #03: Boundary Surveillance (Harmonic Vibration Spike)</option>
+                <option value="mission_01">Sortie #01: Standard Transit (Nominal Baseline)</option>
+              </select>
+            </div>
+            <button id="btn-download-report" class="btn btn-primary btn-report">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                stroke-linecap="round" stroke-linejoin="round">
+                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                <polyline points="7 10 12 15 17 10"></polyline>
+                <line x1="12" y1="15" x2="12" y2="3"></line>
+              </svg>
+              <span>Download Mission Report</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- 1. MISSION SUMMARY DECK -->
+        <div class="replay-summary-grid">
+          <div class="summary-kpi-card">
+            <div class="kpi-label">UAV Platform</div>
+            <div class="kpi-val" id="rep-uav-id">MALE-UAV-07</div>
+            <div class="kpi-sub">Rotax 914 Twin-Turbo Piston</div>
+          </div>
+          <div class="summary-kpi-card">
+            <div class="kpi-label">Mission Duration</div>
+            <div class="kpi-val" id="rep-duration">04h 18m</div>
+            <div class="kpi-sub">258 Minutes Logged</div>
+          </div>
+          <div class="summary-kpi-card">
+            <div class="kpi-label">Total Distance</div>
+            <div class="kpi-val" id="rep-distance">582 km</div>
+            <div class="kpi-sub">Waypoints WP01 - WP05</div>
+          </div>
+          <div class="summary-kpi-card">
+            <div class="kpi-label">Maximum Altitude</div>
+            <div class="kpi-val" id="rep-max-alt">14,200 ft</div>
+            <div class="kpi-sub">Cruise Ceiling: FL140</div>
+          </div>
+          <div class="summary-kpi-card">
+            <div class="kpi-label">Average Speed</div>
+            <div class="kpi-val" id="rep-avg-speed">135 kts</div>
+            <div class="kpi-sub">True Airspeed (TAS)</div>
+          </div>
+          <div class="summary-kpi-card status-card">
+            <div class="kpi-label">Mission Status</div>
+            <div class="kpi-val status-val" id="rep-status">
+              <span class="pulse-dot warning"></span>
+              <span id="rep-status-text">ANOMALY LOGGED</span>
+            </div>
+            <div class="kpi-sub" id="rep-status-sub">Post-Flight Inspection Required</div>
+          </div>
+        </div>
+
+        <!-- MAIN DUAL COLUMN: 2D RADAR PATH + AI ANALYSIS -->
+        <div class="replay-dual-grid">
+          <!-- 2. 2D MISSION PATH (CANVAS) -->
+          <div class="card tactical-radar-card">
+            <div class="card-header">
+              <div class="card-header-left">
+                <span class="card-tag">TACTICAL MAP</span>
+                <span class="card-title">2D Vector Flight Route & Telemetry Orbit</span>
+              </div>
+              <div class="radar-legend">
+                <span class="leg-item"><span class="leg-dot route-dot"></span> Planned Route</span>
+                <span class="leg-item"><span class="leg-dot uav-dot"></span> UAV Position</span>
+                <span class="leg-item"><span class="leg-dot anomaly-dot"></span> Anomaly Sector</span>
+              </div>
+            </div>
+            <div class="radar-canvas-wrap">
+              <canvas id="replay-radar-canvas" width="620" height="340"></canvas>
+              <div class="radar-hud-overlay">
+                <div class="hud-item"><span class="hud-lbl">LAT/LON:</span> <span id="hud-coords" class="mono">28.6139°
+                    N, 77.2090° E</span></div>
+                <div class="hud-item"><span class="hud-lbl">HEADING:</span> <span id="hud-heading"
+                    class="mono">084°</span></div>
+                <div class="hud-item"><span class="hud-lbl">CURRENT PHASE:</span> <span id="hud-phase"
+                    class="badge badge-accent">SURVEILLANCE ORBIT</span></div>
+              </div>
+            </div>
+          </div>
+
+          <!-- 6. AI ANALYSIS & DIAGNOSTICS CARD -->
+          <div class="card replay-ai-card">
+            <div class="card-header">
+              <div class="card-header-left">
+                <span class="card-tag">DIGITAL TWIN AI</span>
+                <span class="card-title">Physics-Informed Diagnostic Inference</span>
+              </div>
+              <span class="badge badge-warning" id="ai-status-badge">FAULT LOCALIZED</span>
+            </div>
+            <div class="ai-analysis-content">
+              <div class="ai-metric-banner">
+                <div class="ai-metric-col">
+                  <span class="ai-col-lbl">Detected Fault Type</span>
+                  <span class="ai-col-val text-warning" id="ai-fault-type">Exhaust Valve Sticking / CHT Thermal
+                    Excursion</span>
+                </div>
+                <div class="ai-metric-col">
+                  <span class="ai-col-lbl">Model Confidence</span>
+                  <span class="ai-col-val font-mono text-cyan" id="ai-confidence">94.8%</span>
+                </div>
+              </div>
+
+              <div class="ai-health-row">
+                <div class="health-meta">
+                  <span>Engine Health Degradation Index</span>
+                  <strong id="ai-health-pct" class="font-mono text-warning">68% Health</strong>
+                </div>
+                <div class="progress-track">
+                  <div class="progress-fill fill-warning" id="ai-health-bar" style="width: 68%;"></div>
+                </div>
+              </div>
+
+              <div class="ai-rul-panel">
+                <div class="rul-header">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <circle cx="12" cy="12" r="10"></circle>
+                    <polyline points="12 6 12 12 16 14"></polyline>
+                  </svg>
+                  <span>Basic RUL & Degradation Forecast</span>
+                </div>
+                <div class="rul-body">
+                  <div class="rul-stat-num" id="ai-rul-hours">34.5 <span class="unit">Flight Hours</span></div>
+                  <p class="rul-desc" id="ai-rul-desc">
+                    Exhaust valve thermal buildup detected at $t = \text{02h 24m}$. Digital Twin acoustic-thermal
+                    residual exceeded threshold ($\epsilon = +18.4\%$). Projected degradation accelerates if continuous
+                    cruise above 5,400 RPM is sustained.
+                  </p>
+                </div>
+                <div class="rul-action-callout" id="ai-action-callout">
+                  <strong>Recommended Action:</strong> Optical Borescope Inspection of Cylinder #3 exhaust seat prior to
+                  next deployment.
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 3. REPLAY TIMELINE & SCRUBBER ⭐ -->
+        <div class="card replay-timeline-card">
+          <div class="card-header">
+            <div class="card-header-left">
+              <span class="card-tag">PLAYBACK SCRUBBER</span>
+              <span class="card-title">Mission Timeline & Phase Synchronization</span>
+            </div>
+            <div class="timeline-controls-group">
+              <button id="btn-replay-play" class="btn btn-secondary btn-icon-round" title="Play / Pause Replay">
+                <svg id="icon-replay-play" width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                  <polygon points="5 3 19 12 5 21 5 3"></polygon>
+                </svg>
+                <svg id="icon-replay-pause" width="16" height="16" viewBox="0 0 24 24" fill="currentColor"
+                  style="display:none;">
+                  <rect x="6" y="4" width="4" height="16"></rect>
+                  <rect x="14" y="4" width="4" height="16"></rect>
+                </svg>
+              </button>
+
+              <div class="speed-selector">
+                <button class="speed-btn active" data-speed="1">1×</button>
+                <button class="speed-btn" data-speed="2">2×</button>
+                <button class="speed-btn" data-speed="5">5×</button>
+              </div>
+
+              <div class="timeline-timestamp-display mono">
+                <span id="rep-current-time">02:24:40</span> / <span id="rep-total-time">04:18:00</span>
+                <span class="timeline-pct-badge" id="rep-pct-badge">56%</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="timeline-slider-container">
+            <input type="range" id="replay-slider" min="0" max="100" value="56" step="0.1"
+              class="replay-range-slider" />
+            <div class="timeline-track-glow" id="replay-slider-glow"></div>
+          </div>
+
+          <!-- Mission-phase milestones -->
+          <div class="milestones-row">
+            <div class="milestone-node" style="left: 0%;" data-time="0">
+              <div class="node-tick"></div>
+              <div class="node-label">Takeoff</div>
+              <div class="node-time">00:00</div>
+            </div>
+            <div class="milestone-node" style="left: 18%;" data-time="18">
+              <div class="node-tick"></div>
+              <div class="node-label">Climb (FL120)</div>
+              <div class="node-time">00:46</div>
+            </div>
+            <div class="milestone-node" style="left: 42%;" data-time="42">
+              <div class="node-tick"></div>
+              <div class="node-label">Surveillance Orbit</div>
+              <div class="node-time">01:48</div>
+            </div>
+            <div class="milestone-node anomaly-node" style="left: 56%;" data-time="56">
+              <div class="node-tick danger-tick"></div>
+              <div class="node-label danger-label">⚠️ Anomaly Trigger</div>
+              <div class="node-time">02:24</div>
+            </div>
+            <div class="milestone-node" style="left: 78%;" data-time="78">
+              <div class="node-tick"></div>
+              <div class="node-label">RTB Ingress</div>
+              <div class="node-time">03:21</div>
+            </div>
+            <div class="milestone-node" style="left: 100%;" data-time="100">
+              <div class="node-tick"></div>
+              <div class="node-label">Touchdown</div>
+              <div class="node-time">04:18</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 4. ENGINE TELEMETRY SYNCHRONIZED DECK ⭐ -->
+        <div class="replay-telemetry-header">
+          <div class="section-title-wrap">
+            <h3>Synchronized Engine Telemetry</h3>
+            <span class="section-subtitle">Real-time parameters at timeline marker $t$. Values dynamically adjust during
+              playback.</span>
+          </div>
+        </div>
+
+        <div class="replay-telemetry-grid">
+          <!-- RPM -->
+          <div class="card tel-stat-card" id="tel-card-rpm">
+            <div class="tel-card-top">
+              <span class="tel-name">Engine RPM</span>
+              <span class="tel-unit">REV/MIN</span>
+            </div>
+            <div class="tel-val font-mono" id="rep-tel-rpm">5,420</div>
+            <div class="tel-meter-wrap">
+              <div class="tel-meter-fill" id="rep-bar-rpm" style="width: 82%;"></div>
+            </div>
+            <div class="tel-limits">
+              <span>Idle: 1,800</span>
+              <span class="limit-target">Max: 5,800</span>
+            </div>
+          </div>
+
+          <!-- Temperature -->
+          <div class="card tel-stat-card" id="tel-card-temp">
+            <div class="tel-card-top">
+              <span class="tel-name">Exhaust / CHT Temp</span>
+              <span class="tel-unit">°CELSIUS</span>
+            </div>
+            <div class="tel-val font-mono text-warning" id="rep-tel-temp">214°C</div>
+            <div class="tel-meter-wrap">
+              <div class="tel-meter-fill fill-warning" id="rep-bar-temp" style="width: 88%;"></div>
+            </div>
+            <div class="tel-limits">
+              <span>EGT: <span id="rep-tel-egt" class="mono">840°C</span></span>
+              <span class="limit-target text-warning">CHT Limit: 200°C</span>
+            </div>
+          </div>
+
+          <!-- Oil Pressure -->
+          <div class="card tel-stat-card" id="tel-card-oilp">
+            <div class="tel-card-top">
+              <span class="tel-name">Oil Pressure</span>
+              <span class="tel-unit">BAR</span>
+            </div>
+            <div class="tel-val font-mono" id="rep-tel-oilp">3.8</div>
+            <div class="tel-meter-wrap">
+              <div class="tel-meter-fill" id="rep-bar-oilp" style="width: 65%;"></div>
+            </div>
+            <div class="tel-limits">
+              <span>Min: 2.0 bar</span>
+              <span class="limit-target">Norm: 4.0 - 5.0</span>
+            </div>
+          </div>
+
+          <!-- Vibration -->
+          <div class="card tel-stat-card" id="tel-card-vib">
+            <div class="tel-card-top">
+              <span class="tel-name">Acoustic Vibration</span>
+              <span class="tel-unit">MM/S (RMS)</span>
+            </div>
+            <div class="tel-val font-mono text-warning" id="rep-tel-vib">3.4</div>
+            <div class="tel-meter-wrap">
+              <div class="tel-meter-fill fill-warning" id="rep-bar-vib" style="width: 72%;"></div>
+            </div>
+            <div class="tel-limits">
+              <span>Baseline: 1.2</span>
+              <span class="limit-target text-warning">Alert Threshold: 2.5</span>
+            </div>
+          </div>
+
+          <!-- Fuel Level -->
+          <div class="card tel-stat-card" id="tel-card-fuel">
+            <div class="tel-card-top">
+              <span class="tel-name">Fuel Remaining</span>
+              <span class="tel-unit">% TANK</span>
+            </div>
+            <div class="tel-val font-mono" id="rep-tel-fuel">54%</div>
+            <div class="tel-meter-wrap">
+              <div class="tel-meter-fill fill-accent" id="rep-bar-fuel" style="width: 54%;"></div>
+            </div>
+            <div class="tel-limits">
+              <span>Burn: 18.2 L/h</span>
+              <span class="limit-target">Cap: 120 L</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- 5. EVENTS & ALERTS LOG (TIMESTAMP + SEVERITY) ⭐ -->
+        <div class="card replay-events-card">
+          <div class="card-header">
+            <div class="card-header-left">
+              <span class="card-tag">MISSION AUDIT LOG</span>
+              <span class="card-title">Chronological Events & Severity Classification</span>
+            </div>
+            <span class="badge badge-info" id="rep-events-count">6 Events Logged</span>
+          </div>
+          <div class="replay-events-table-wrap">
+            <table class="replay-events-table">
+              <thead>
+                <tr>
+                  <th>Time</th>
+                  <th>Phase / Waypoint</th>
+                  <th>Event Description</th>
+                  <th>Severity</th>
+                  <th>Sensor Correlate</th>
+                  <th>Action</th>
+                </tr>
+              </thead>
+              <tbody id="replay-events-tbody">
+                <!-- Injected via JavaScript -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- ============================================================ -->
+      <!-- SECTION: GARUD-DT ALERT MANAGEMENT & AI DIAGNOSTICS (MVP)    -->
+      <!-- ============================================================ -->
+      <div class="view-section" id="view-alerts">
+        <div class="section-top-bar alerts-top-bar">
+          <div class="section-title-wrap">
+            <div class="title-with-badge">
+              <h2>GARUD-DT Alert Operations & AI Diagnostics</h2>
+              <span class="badge badge-danger" id="badge-critical-alerts">1 CRITICAL</span>
+              <span class="badge badge-warning" id="badge-warning-alerts">1 WARNING</span>
+              <span class="badge badge-accent">CHAIN: ANOMALY → AI → ACTION</span>
+            </div>
+            <span class="section-subtitle">Real-time engine threshold detection, digital twin physics assessment, and
+              closed-loop corrective actions</span>
+          </div>
+          <div class="alerts-actions-header">
+            <button id="btn-ack-all-alerts" class="btn btn-secondary btn-sm">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <polyline points="20 6 9 17 4 12"></polyline>
+              </svg>
+              <span>Acknowledge All</span>
+            </button>
+            <button id="btn-clear-resolved-alerts" class="btn btn-secondary btn-sm">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <polyline points="3 6 5 6 21 6"></polyline>
+                <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+              </svg>
+              <span>Clear Resolved</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- 1. ALERT SUMMARY (4 TOP CARDS) -->
+        <div class="alerts-summary-grid">
+          <div class="summary-kpi-card alert-kpi-crit">
+            <div class="kpi-label">Critical Alerts</div>
+            <div class="kpi-val text-danger" id="alert-kpi-critical">1</div>
+            <div class="kpi-sub">Immediate Action Required</div>
+          </div>
+          <div class="summary-kpi-card alert-kpi-warn">
+            <div class="kpi-label">Warnings</div>
+            <div class="kpi-val text-warning" id="alert-kpi-warning">1</div>
+            <div class="kpi-sub">Active System Monitoring</div>
+          </div>
+          <div class="summary-kpi-card alert-kpi-resolved">
+            <div class="kpi-label">Resolved</div>
+            <div class="kpi-val text-green" id="alert-kpi-resolved">1</div>
+            <div class="kpi-sub">Cleared Conditions Today</div>
+          </div>
+          <div class="summary-kpi-card alert-kpi-total">
+            <div class="kpi-label">Total Alerts</div>
+            <div class="kpi-val text-cyan" id="alert-kpi-total">3</div>
+            <div class="kpi-sub">Sortie Events Logged</div>
+          </div>
+        </div>
+
+        <!-- 2. ACTIVE ALERTS (TABLE) ⭐ -->
+        <div class="card active-alerts-card">
+          <div class="card-header">
+            <div class="card-header-left">
+              <span class="card-tag">ACTIVE FEED</span>
+              <span class="card-title">Active Alerts & Telemetry Anomaly Stream</span>
+            </div>
+            <span class="badge badge-info" id="active-alerts-count">2 Active Conditions</span>
+          </div>
+          <div class="active-alerts-table-wrap">
+            <table class="alerts-table" id="active-alerts-table">
+              <thead>
+                <tr>
+                  <th>Time</th>
+                  <th>UAV</th>
+                  <th>Parameter</th>
+                  <th>Alert</th>
+                  <th>Value</th>
+                  <th>Severity</th>
+                  <th>Status</th>
+                  <th>Action</th>
+                </tr>
+              </thead>
+              <tbody id="active-alerts-tbody">
+                <!-- Dynamically populated -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- 3 & 4. DUAL PANEL: ALERT DETAILS ⭐ + AI ANALYSIS & RECOMMENDED ACTION ⭐ -->
+        <div class="alerts-dual-grid">
+          <!-- ALERT DETAILS -->
+          <div class="card alert-details-card" id="alert-details-panel">
+            <div class="card-header">
+              <div class="card-header-left">
+                <span class="card-tag">INVESTIGATION</span>
+                <span class="card-title">Alert Details & Parameter Limits</span>
+              </div>
+              <span class="badge badge-warning" id="detail-card-badge">WARNING</span>
+            </div>
+            <div class="alert-details-content">
+              <div class="alert-title-bar">
+                <h3 id="detail-alert-title">High Vibration Detected</h3>
+                <span class="detail-time-elapsed mono" id="detail-alert-elapsed">Duration: 2 min 14 sec</span>
+              </div>
+
+              <div class="alert-detail-grid">
+                <div class="detail-item">
+                  <span class="detail-k">UAV Identifier</span>
+                  <span class="detail-v font-mono" id="detail-uav-id">UAV-01</span>
+                </div>
+                <div class="detail-item">
+                  <span class="detail-k">Detected Time</span>
+                  <span class="detail-v font-mono" id="detail-time">09:41:17 UTC</span>
+                </div>
+                <div class="detail-item">
+                  <span class="detail-k">Current Value</span>
+                  <span class="detail-v font-mono text-warning" id="detail-current-val">1.6 mm/s</span>
+                </div>
+                <div class="detail-item">
+                  <span class="detail-k">Normal Threshold</span>
+                  <span class="detail-v font-mono" id="detail-normal-range">&lt; 1.0 mm/s</span>
+                </div>
+                <div class="detail-item">
+                  <span class="detail-k">Severity Level</span>
+                  <span class="detail-v" id="detail-severity"><span class="chip chip-warn">Warning</span></span>
+                </div>
+                <div class="detail-item">
+                  <span class="detail-k">Affected Parameter</span>
+                  <span class="detail-v" id="detail-parameter">Acoustic Vibration (RMS)</span>
+                </div>
+              </div>
+
+              <div class="alert-actions-footer">
+                <div class="alert-action-prompt">Operator Decision & Workflow:</div>
+                <div class="alert-btn-group">
+                  <button id="btn-ack-selected" class="btn btn-secondary btn-ack-action">
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                      <polyline points="20 6 9 17 4 12"></polyline>
+                    </svg>
+                    <span>Acknowledge Alert</span>
+                  </button>
+                  <button id="btn-resolve-selected" class="btn btn-primary btn-resolve-action">
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                      <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+                      <polyline points="22 4 12 14.01 9 11.01"></polyline>
+                    </svg>
+                    <span>Resolve Condition</span>
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- AI ANALYSIS & RECOMMENDED ACTION -->
+          <div class="card alert-ai-card">
+            <div class="card-header">
+              <div class="card-header-left">
+                <span class="card-tag">DIGITAL TWIN AI</span>
+                <span class="card-title">AI Fault Assessment & Diagnostics</span>
+              </div>
+              <span class="badge badge-accent">GARUD-DT MODEL</span>
+            </div>
+            <div class="alert-ai-content">
+              <!-- AI Assessment Quote -->
+              <div class="ai-assessment-box">
+                <div class="ai-box-label">AI Assessment</div>
+                <blockquote class="ai-assessment-quote" id="ai-assessment-quote">
+                  "Possible excessive mechanical vibration. Spectral peak localized at 2.4x propeller order harmonics."
+                </blockquote>
+              </div>
+
+              <!-- AI Inference Metrics -->
+              <div class="ai-metrics-grid">
+                <div class="ai-stat-pod">
+                  <span class="stat-pod-k">Fault Probability</span>
+                  <span class="stat-pod-v font-mono text-warning" id="ai-fault-prob">91%</span>
+                </div>
+                <div class="ai-stat-pod">
+                  <span class="stat-pod-k">Engine Health</span>
+                  <span class="stat-pod-v font-mono text-cyan" id="ai-engine-health">78 / 100</span>
+                  <div class="stat-pod-track">
+                    <div class="stat-pod-fill fill-warning" id="ai-health-meter" style="width: 78%;"></div>
+                  </div>
+                </div>
+                <div class="ai-stat-pod">
+                  <span class="stat-pod-k">Degradation Trend</span>
+                  <span class="stat-pod-v font-mono text-warning" id="ai-fault-trend">Increasing ↗</span>
+                </div>
+                <div class="ai-stat-pod">
+                  <span class="stat-pod-k">Model Confidence</span>
+                  <span class="stat-pod-v font-mono text-green" id="ai-confidence-val">High (Ensemble)</span>
+                </div>
+              </div>
+
+              <!-- Recommended Action Callout -->
+              <div class="ai-recommendation-panel" id="ai-recommendation-panel">
+                <div class="rec-panel-header">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <circle cx="12" cy="12" r="10"></circle>
+                    <line x1="12" y1="8" x2="12" y2="12"></line>
+                    <line x1="12" y1="16" x2="12.01" y2="16"></line>
+                  </svg>
+                  <span>Recommended Action</span>
+                </div>
+                <div class="rec-panel-body" id="ai-recommended-action">
+                  Recommended: Inspect relevant mechanical/rotating components after mission. Verify propeller governor
+                  backlash at 100h interval.
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 6. ALERT HISTORY + FILTERS -->
+        <div class="card alert-history-card">
+          <div class="card-header">
+            <div class="card-header-left">
+              <span class="card-tag">AUDIT LOG</span>
+              <span class="card-title">Alert History & Closed-Loop Operations</span>
+            </div>
+            <span class="badge badge-info" id="history-total-count">History Log</span>
+          </div>
+
+          <!-- History Filter Bar -->
+          <div class="alert-history-filter-bar">
+            <div class="filter-time-group">
+              <button class="filter-btn active" data-time-filter="today">Today</button>
+              <button class="filter-btn" data-time-filter="7days">Last 7 days</button>
+              <button class="filter-btn" data-time-filter="30days">Last 30 days</button>
+            </div>
+
+            <div class="filter-dropdowns-group">
+              <div class="filter-select-wrap">
+                <label>UAV ID:</label>
+                <select id="filter-uav-select" class="alert-filter-select">
+                  <option value="all">All UAVs</option>
+                  <option value="UAV-01">UAV-01 (Active Sortie)</option>
+                  <option value="UAV-04">UAV-04 (Boundary Patrol)</option>
+                  <option value="UAV-07">UAV-07 (Recon Ingress)</option>
+                </select>
+              </div>
+
+              <div class="filter-select-wrap">
+                <label>Severity:</label>
+                <select id="filter-severity-select" class="alert-filter-select">
+                  <option value="all">All Severities</option>
+                  <option value="CRITICAL">🔴 Critical</option>
+                  <option value="WARNING">🟠 Warning</option>
+                  <option value="INFO">🔵 Info</option>
+                </select>
+              </div>
+
+              <div class="filter-select-wrap">
+                <label>Fault Type:</label>
+                <select id="filter-type-select" class="alert-filter-select">
+                  <option value="all">All Fault Types</option>
+                  <option value="Vibration">Vibration & Harmonics</option>
+                  <option value="Thermal">Thermal & CHT</option>
+                  <option value="Lubrication">Lubrication & Oil</option>
+                  <option value="Degradation">Performance Loss</option>
+                </select>
+              </div>
+            </div>
+          </div>
+
+          <!-- History Records Table -->
+          <div class="history-table-wrap">
+            <table class="alerts-table" id="history-alerts-table">
+              <thead>
+                <tr>
+                  <th>Timestamp</th>
+                  <th>UAV</th>
+                  <th>Parameter</th>
+                  <th>Fault Classification</th>
+                  <th>Peak Value</th>
+                  <th>Severity</th>
+                  <th>Resolution Status</th>
+                  <th>Root Cause & Corrective Action</th>
+                </tr>
+              </thead>
+              <tbody id="history-alerts-tbody">
+                <!-- Dynamically populated -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <footer class="footer">
+        <div class="status-legend-bar">
+          <div class="legend-item">
+            <span class="legend-dot dot-normal"></span>
+            <span class="legend-label label-normal">NORMAL</span>
+            <span class="legend-desc">All parameters normal</span>
+          </div>
+          <div class="legend-divider"></div>
+          <div class="legend-item">
+            <span class="legend-dot dot-warning"></span>
+            <span class="legend-label label-warning">WARNING</span>
+            <span class="legend-desc">Monitor the system</span>
+          </div>
+          <div class="legend-divider"></div>
+          <div class="legend-item">
+            <span class="legend-dot dot-critical"></span>
+            <span class="legend-label label-critical">CRITICAL</span>
+            <span class="legend-desc">Action required immediately</span>
+          </div>
+        </div>
+      </footer>
+
+    </div>
+  </div>
+
+  <!-- ============================================================ -->
+  <!-- Warning popup system + alert center drawer + detail modal     -->
+  <!-- ============================================================ -->
+  <div id="popup-layer" aria-live="polite" aria-relevant="additions"></div>
+
+  <aside id="alert-center" aria-label="Alert center" role="region">
+    <div class="ac-header">
+      <div class="ac-title-wrap">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"
+          stroke-linecap="round" stroke-linejoin="round">
+          <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path>
+          <path d="M13.73 21a2 2 0 0 1-3.46 0"></path>
+        </svg>
+        <h2>Alert Center</h2>
+      </div>
+      <button class="ac-close" id="alert-center-close" type="button" aria-label="Close">×</button>
+    </div>
+    <div class="ac-tabs">
+      <button class="ac-tab active" data-tab="active" type="button">Active</button>
+      <button class="ac-tab" data-tab="acked" type="button">Acknowledged</button>
+      <button class="ac-tab" data-tab="history" type="button">History</button>
+    </div>
+    <div class="ac-list" id="alert-center-list">
+      <div class="ac-empty">No alerts.</div>
+    </div>
+  </aside>
+
+  <div id="detail-modal" role="dialog" aria-modal="true" aria-labelledby="detail-modal-title">
+    <div class="dm-card">
+      <div class="dm-header">
+        <span class="popup-sev" id="detail-modal-sev">—</span>
+        <h3 id="detail-modal-title">Alert detail</h3>
+        <button class="ac-close" id="detail-modal-close" type="button" aria-label="Close">×</button>
+      </div>
+      <div class="dm-body" id="detail-modal-body"></div>
+      <div class="dm-footer">
+        <button id="detail-modal-ack" type="button">Acknowledge</button>
+        <button class="primary" id="detail-modal-dismiss" type="button">Close</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Mission Report Modal -->
+  <div id="report-modal" class="report-modal-backdrop" role="dialog" aria-modal="true" style="display:none;">
+    <div class="report-modal-card">
+      <div class="report-modal-header">
+        <div class="report-header-title">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+            <polyline points="14 2 14 8 20 8"></polyline>
+            <line x1="16" y1="13" x2="8" y2="13"></line>
+            <line x1="16" y1="17" x2="8" y2="17"></line>
+            <polyline points="10 9 9 9 8 9"></polyline>
+          </svg>
+          <h3>Uav Piston Digital Twin — Sortie Debrief & Health Certification</h3>
+        </div>
+        <div class="report-header-actions">
+          <button id="report-print-btn" class="btn btn-secondary">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <polyline points="6 9 6 2 18 2 18 9"></polyline>
+              <path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"></path>
+              <rect x="6" y="14" width="12" height="8"></rect>
+            </svg>
+            Print / Save PDF
+          </button>
+          <button id="report-raw-download-btn" class="btn btn-primary">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+              <polyline points="7 10 12 15 17 10"></polyline>
+              <line x1="12" y1="15" x2="12" y2="3"></line>
+            </svg>
+            Download HTML File
+          </button>
+          <button id="report-modal-close" class="report-close-btn" aria-label="Close">×</button>
+        </div>
+      </div>
+      <div class="report-modal-body" id="report-modal-body">
+        <!-- Rendered report content dynamically filled -->
+      </div>
+    </div>
+  </div>
+
+  <!-- Chart.js (UMD) — pinned for reproducibility -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+  <script src="/assets/dashboard.js"></script>
+</body>
+
+</html>

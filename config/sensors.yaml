@@ -1,0 +1,168 @@
+# =====================================================================
+# Virtual sensor configuration
+# ---------------------------------------------------------------------
+# Each sensor defines:
+#   - nominal noise (Gaussian)
+#   - optional bias / drift rate
+#   - dropout, spike, stuck-at-value probabilities
+#   - calibration error
+# Values are PROTOTYPE defaults (SYNTHETIC), bounded by typical
+# MEMS / aviation sensor specs from PUBLIC_DATA where given.
+# =====================================================================
+
+sensors:
+  rpm:
+    type: "rpm"
+    unit: "rpm"
+    sample_rate_hz: 10
+    noise_std: 5.0           # PUBLIC_DATA  (magnetic pickup)
+    bias: 0.0                # SYNTHETIC
+    drift_per_hour: 0.0      # SYNTHETIC
+    dropout_prob: 0.0005     # SYNTHETIC
+    spike_prob: 0.0005       # SYNTHETIC
+    stuck_prob: 0.0001       # SYNTHETIC
+    stuck_value: 0.0         # SYNTHETIC
+    calibration_error: 0.01  # SYNTHETIC (1%)
+
+  egt:
+    type: "thermocouple"
+    unit: "C"
+    sample_rate_hz: 5
+    noise_std: 4.0           # PUBLIC_DATA (K-type TC)
+    bias: 0.0
+    drift_per_hour: 0.5      # SYNTHETIC (aging TC)
+    dropout_prob: 0.0005
+    spike_prob: 0.001
+    stuck_prob: 0.0001
+    stuck_value: 700.0
+    calibration_error: 0.02
+
+  cht:
+    type: "thermocouple"
+    unit: "C"
+    sample_rate_hz: 2
+    noise_std: 2.0
+    bias: 0.0
+    drift_per_hour: 0.2
+    dropout_prob: 0.0005
+    spike_prob: 0.0005
+    stuck_prob: 0.0001
+    stuck_value: 200.0
+    calibration_error: 0.015
+
+  oil_pressure:
+    type: "pressure"
+    unit: "psi"
+    sample_rate_hz: 5
+    noise_std: 0.5
+    bias: 0.0
+    drift_per_hour: 0.05
+    dropout_prob: 0.0005
+    spike_prob: 0.0005
+    stuck_prob: 0.0001
+    stuck_value: 60.0
+    calibration_error: 0.02
+
+  oil_temperature:
+    type: "rtd"
+    unit: "C"
+    sample_rate_hz: 2
+    noise_std: 0.8
+    bias: 0.0
+    drift_per_hour: 0.1
+    dropout_prob: 0.0005
+    spike_prob: 0.0005
+    stuck_prob: 0.0001
+    stuck_value: 90.0
+    calibration_error: 0.01
+
+  fuel_flow:
+    type: "flow"
+    unit: "L/h"
+    sample_rate_hz: 5
+    noise_std: 0.3
+    bias: 0.0
+    drift_per_hour: 0.05
+    dropout_prob: 0.0005
+    spike_prob: 0.0005
+    stuck_prob: 0.0001
+    stuck_value: 30.0
+    calibration_error: 0.03
+
+  vibration:
+    type: "accelerometer"
+    unit: "g_rms"
+    sample_rate_hz: 100
+    noise_std: 0.05          # PUBLIC_DATA (MEMS IMU)
+    bias: 0.0
+    drift_per_hour: 0.01
+    dropout_prob: 0.001
+    spike_prob: 0.001
+    stuck_prob: 0.0001
+    stuck_value: 0.0
+    calibration_error: 0.05
+
+  imu_accel:
+    type: "imu"
+    unit: "m/s^2"
+    sample_rate_hz: 100
+    noise_std: 0.05
+    bias: 0.0
+    drift_per_hour: 0.005
+    dropout_prob: 0.0005
+    spike_prob: 0.0005
+    stuck_prob: 0.00005
+    stuck_value: 0.0
+    calibration_error: 0.02
+
+  altitude:
+    type: "baro"
+    unit: "m"
+    sample_rate_hz: 10
+    noise_std: 1.0
+    bias: 0.0
+    drift_per_hour: 0.1
+    dropout_prob: 0.0005
+    spike_prob: 0.0005
+    stuck_prob: 0.0001
+    stuck_value: 0.0
+    calibration_error: 0.005
+
+  airspeed:
+    type: "pitot"
+    unit: "m/s"
+    sample_rate_hz: 10
+    noise_std: 0.3
+    bias: 0.0
+    drift_per_hour: 0.05
+    dropout_prob: 0.0005
+    spike_prob: 0.0005
+    stuck_prob: 0.0001
+    stuck_value: 0.0
+    calibration_error: 0.02
+
+  ambient_temperature:
+    type: "rtd"
+    unit: "C"
+    sample_rate_hz: 2
+    noise_std: 0.3
+    bias: 0.0
+    drift_per_hour: 0.05
+    dropout_prob: 0.0005
+    spike_prob: 0.0005
+    stuck_prob: 0.0001
+    stuck_value: 15.0
+    calibration_error: 0.01
+
+  ambient_pressure:
+    type: "baro"
+    unit: "Pa"
+    sample_rate_hz: 10
+    noise_std: 10.0
+    bias: 0.0
+    drift_per_hour: 1.0
+    dropout_prob: 0.0005
+    spike_prob: 0.0005
+    stuck_prob: 0.0001
+    stuck_value: 101325.0
+    calibration_error: 0.005

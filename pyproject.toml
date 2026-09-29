@@ -1,0 +1,101 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "aero-piston-digital-twin"
+version = "0.1.0"
+description = "AI-enabled real-time digital twin for health monitoring, fault prediction, and mission reliability of aero piston engines (MALE UAV)."
+readme = "README.md"
+requires-python = ">=3.11"
+license = { text = "Research-Prototype" }
+authors = [{ name = "Lead Systems Engineer" }]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Science/Research",
+    "Programming Language :: Python :: 3",
+    "Topic :: Scientific/Engineering",
+]
+dependencies = [
+    "numpy>=1.26",
+    "scipy>=1.11",
+    "pandas>=2.1",
+    "pyyaml>=6.0",
+    "pydantic>=2.5",
+    "scikit-learn>=1.4",
+    "xgboost>=2.0",
+    "fastapi>=0.110",
+    "uvicorn[standard]>=0.27",
+    "websockets>=12.0",
+    "plotly>=5.18",
+    "sqlalchemy>=2.0",
+    "pyserial>=3.5",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=8.0",
+    "pytest-asyncio>=0.23",
+    "pytest-cov>=4.1",
+    "pytest-benchmark>=4.0",
+    "hypothesis>=6.100",
+    "httpx>=0.26",
+    "black>=24.0",
+    "ruff>=0.3",
+    "mypy>=1.8",
+]
+
+[project.scripts]
+aero-dt = "backend.config.cli:main"
+aero-dt-demo = "backend.dashboard.sih_demo:main"
+aero-dt-dashboard = "backend.dashboard.main:main"
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["backend*"]
+
+[tool.pytest.ini_options]
+testpaths = ["backend/tests", "tests"]
+python_files = ["test_*.py"]
+addopts = "-ra --strict-markers"
+markers = [
+    "phase1: Phase 1 — project skeleton and configuration",
+    "phase2: Phase 2 — environment and mission simulator",
+    "phase3: Phase 3 — representative piston engine model",
+    "phase4: Phase 4 — virtual sensor system",
+    "phase5: Phase 5 — telemetry streaming",
+    "phase6: Phase 6 — digital twin (physics-driven state estimator)",
+    "phase7: Phase 7 — fault injection (declarative scenarios + per-tick injector)",
+    "phase8: Phase 8 — anomaly detection (rule-based fusion of twin residuals + sensor health)",
+    "phase9: Phase 9 — fault classification (Random Forest / Gradient Boosting)",
+    "phase10: Phase 10 — health index (per-subsystem + overall + trend)",
+    "phase11: Phase 11 — remaining useful life + uncertainty (RUL)",
+    "phase12: Phase 12 — mission risk engine",
+    "phase13: Phase 13 — real-time dashboard",
+    "phase14: Phase 14 — hardware interface (serial / UART transport)",
+    "phase15: Phase 15 — HIL validation harness (record / replay / golden compare)",
+    "phase16: Phase 16 — testing + performance (coverage, benchmarks, fault contract, property tests, stress)",
+    "phase17: Phase 17 — real-time streaming pipeline (adapter, async pipeline, replay controller, latency)",
+    "phase18: Phase 18 — embedded telemetry acquisition layer (schema, calibration, sampling, serial, CAN, simulation fallback)",
+    "phase19: Phase 19 — control-room dashboard (residual, alerts, events, twin expected vs observed, 8 charts)",
+    "phase20: Phase 20 — MALE-UAV mission profile generator (10 phases, 7 templates, sync truth/observed)",
+    "phase21: Phase 21 — controlled fault-injection framework (17-type taxonomy, severity/pattern sweeps, train/val/test splits, no contamination)",
+    "phase22: Phase 22 — unified diagnostic state (12 fields, dashboard/API/replay common wire format, residual-trend + uncertainty fusion)",
+    "phase23: Phase 23 — mission reliability view (LOW/MEDIUM/HIGH/UNKNOWN advisory band, named-driver explanation, no control commands, no success-probability number)",
+    "phase24: Phase 24 — individual warning popup system + alert center (popup stacking, stable alert_id dedup, escalation, ack, history, environment-aware downgrades)",
+    "slow: slow tests",
+]
+
+[tool.ruff]
+line-length = 100
+target-version = "py311"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "B", "UP", "N", "W"]
+ignore = ["E501"]
+
+[tool.mypy]
+python_version = "3.11"
+strict_optional = true
+warn_unused_ignores = true
+ignore_missing_imports = true

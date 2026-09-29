@@ -1,0 +1,45 @@
+# =====================================================================
+# Mission risk engine configuration (PHASE 12)
+# ---------------------------------------------------------------------
+# All values are operator-tunable; defaults are conservative.
+# Provenance: USER_CONFIGURED — replace with operational values
+# before any real deployment. The risk layer is the *operational*
+# layer; weights and thresholds are exactly what an operator or
+# certification engineer would want to adjust per fleet / per
+# mission profile.
+# =====================================================================
+
+risk:
+  provenance: USER_CONFIGURED
+  notes:
+    - "Conservative defaults. Tune per fleet / mission profile."
+
+  # Per-signal weights in the deficit sum. The three weights are
+  # normalised to sum to 1.0 at load time, so changing individual
+  # values only requires keeping the sum reasonable.
+  weight_health: 0.45       # weight on (1 - health.overall_score)
+  weight_rul: 0.35          # weight on the RUL deficit (lower bound ramp)
+  weight_anomaly: 0.20      # weight on anomaly.overall_score
+
+  # Status / level thresholds on the final risk score [0, 1].
+  threshold_caution: 0.25
+  threshold_return_to_base: 0.55
+  threshold_abort: 0.80
+
+  # RUL deficit ramp parameters (hours). < floor_h -> full deficit
+  # (1.0); > ceiling_h -> zero deficit; linear on the lower bound
+  # (5th percentile) in between.
+  rul_deficit_floor_h: 5.0
+  rul_deficit_ceiling_h: 100.0
+
+  # Fault boost: extra risk added per unit of max fault
+  # probability. A fault at p=0.7 adds 0.07 to the score.
+  fault_boost_coef: 0.10
+
+  # Trend buffer parameters.
+  trend_epsilon: 0.03
+  trend_window: 10
+
+  # Below this overall confidence, the assessment is forced to
+  # INSUFFICIENT_DATA (per spec: "no fake outputs").
+  min_confidence_for_decision: 0.20

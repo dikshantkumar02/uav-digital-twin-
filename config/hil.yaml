@@ -1,0 +1,48 @@
+# HIL validation harness configuration (PHASE 15).
+# All values are operator-tunable; defaults work from a fresh checkout
+# against the committed data/golden/ artefacts.
+
+hil:
+  # --- Where the golden reference lives ---
+  # Each scenario is a subdirectory with manifest.yaml, wire.bin, and
+  # snapshots.jsonl. The harness replays wire.bin through the PHASE 14
+  # transport and compares each captured snapshot against snapshots.jsonl.
+  golden_root: data/golden
+
+  # --- Default + covered scenarios ---
+  # Names from backend.dashboard.scenarios.SCENARIO_REGISTRY.
+  default_scenario: engine_degradation_60s
+  scenarios:
+    - healthy_60s
+    - engine_degradation_60s
+    - overheating_60s
+    - sensor_fault_60s
+    - vibration_anomaly_60s
+
+  # --- Per-field tolerance bands for the comparator ---
+  # Absolutes are in the natural unit of the field. Relatives are
+  # fractions of max(|expected|, 1) so small magnitudes still have a
+  # meaningful bound.
+  tolerance:
+    health_abs: 0.01
+    rul_abs: 1.0              # hours
+    risk_abs: 0.02
+    engine_state_rel: 0.005   # 0.5 %
+    environment_rel: 0.005
+    anomaly_abs: 0.02
+
+  # --- Replay-loop knobs ---
+  # chunk_bytes: how many bytes the replayer pushes into the loopback
+  #              port per write call.
+  # rate_hz:    None = replay as fast as possible (test mode).
+  #             Set to a positive float to throttle to that rate.
+  replay:
+    chunk_bytes: 4096
+    rate_hz: ~
+
+  provenance: USER_CONFIGURED
+  notes:
+    - "Default golden_root is data/golden (committed in the repo)."
+    - "The harness uses the PHASE 14 transport + codec to replay wire bytes — same path as live hardware."
+    - "Regenerate the golden set with: python scripts/generate_golden.py"
+    - "Validate against the golden set with: python -m backend.hil validate-all"

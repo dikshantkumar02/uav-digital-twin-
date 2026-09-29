@@ -1,0 +1,36 @@
+# Real-time dashboard server configuration (PHASE 13).
+# All values are operator-tunable; defaults are conservative and demo-friendly.
+#
+# The dashboard is runnable from a fresh checkout even if this file is absent:
+# backend.config.load_dashboard_config() falls back to the schema defaults.
+
+dashboard:
+  # --- Server bind ---
+  host: 127.0.0.1
+  port: 8000
+
+  # --- Production cadence ---
+  tick_rate_hz: 10.0          # 0.1 s sim-time per wall second
+
+  # --- Snapshot ring buffer / queue depth ---
+  # Holds the most recent N snapshots for /api/history and the WS replay.
+  history_size: 600            # 60 s of history at 10 Hz
+
+  # --- Scenario registry ---
+  # Names from backend.dashboard.scenarios.SCENARIO_REGISTRY. The demo-friendly
+  # default is engine_degradation_60s: a 60 s mission with the fault injected
+  # at t=10 s, escalating risk to CAUTION within the first ~30 s.
+  default_scenario: engine_degradation_60s
+
+  # --- Static files ---
+  static_dir: frontend         # relative to REPO_ROOT
+
+  # --- Server-side knobs ---
+  log_level: INFO
+  max_ws_clients: 8
+
+  provenance: USER_CONFIGURED
+  notes:
+    - "Demo-friendly default: engine_degradation_60s (60 s mission, fault at t=10 s)."
+    - "Frontend lives in frontend/index.html (single self-contained file)."
+    - "REST + WebSocket; WS is the primary update path, REST is the fallback."

@@ -1,0 +1,9 @@
+crc_policy: ccitt
+duration_s: 60.0
+git_rev: null
+n_frames: 600
+notes:
+- Baseline golden set generated from PHASE 15.
+recorded_at: '2026-08-31T03:33:06+00:00'
+sample_rate_hz: 10.0
+scenario_name: healthy_60s
