@@ -193,11 +193,26 @@
         <button class="btn-ack" type="button">ACKNOWLEDGE</button>
         <button class="btn-details" type="button">VIEW DETAILS</button>
       </div>`;
-    el.querySelector(".btn-ack").addEventListener("click", () => {
-      acknowledgeAlert(state.data.alert_id);
+    const ackBtn = el.querySelector(".btn-ack");
+    ackBtn.addEventListener("click", (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      const aId = state.data.alert_id || el.dataset.alertId;
+      acknowledgeAlert(aId);
+      el.classList.add("acked");
+      el.style.transition = "opacity 0.2s ease, transform 0.2s ease";
+      el.style.opacity = "0";
+      el.style.transform = "translateX(20px)";
+      el.style.pointerEvents = "none";
+      setTimeout(() => {
+        hidePopup(aId);
+        if (el.parentElement) el.parentElement.removeChild(el);
+      }, 200);
     });
-    el.querySelector(".btn-details").addEventListener("click", () => {
-      openDetail(state.data.alert_id);
+    el.querySelector(".btn-details").addEventListener("click", (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      openDetail(state.data.alert_id || el.dataset.alertId);
     });
     state.element = el;
     return el;
