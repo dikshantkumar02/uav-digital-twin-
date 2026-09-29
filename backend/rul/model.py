@@ -588,6 +588,109 @@ def load_model(path: Path) -> TrainedWearModel:
     return model
 
 
+def load_rotax_rul_dataset(
+    csv_path: Optional[Path | str] = None,
+    split: Optional[str] = None,
+) -> WearRateDataset:
+    """Load the high-fidelity Rotax 912 RUL dataset into a WearRateDataset.
+
+    Parameters
+    ----------
+    csv_path:
+        Optional path to CSV. If omitted, defaults to data/rotax_912_rul_dataset.csv
+        or the requested split ('train', 'val', 'test').
+    split:
+        Optional split name ('train', 'val', 'test').
+    """
+    import pandas as pd
+
+    if csv_path is None:
+        root = Path(__file__).resolve().parent.parent.parent
+        if split in ("train", "val", "test"):
+            csv_path = root / "data" / f"rotax_912_rul_{split}.csv"
+        else:
+            csv_path = root / "data" / "rotax_912_rul_dataset.csv"
+    else:
+        csv_path = Path(csv_path)
+
+    if not csv_path.exists():
+        raise FileNotFoundError(f"Rotax 912 RUL dataset not found at {csv_path}")
+
+    df = pd.read_csv(csv_path)
+    n = len(df)
+    X = np.zeros((n, FEATURE_DIM), dtype=np.float32)
+
+    X[:, 0] = df["health_index"].to_numpy(dtype=np.float32)
+    trend_deg = ((df["wear_factor"] > 0.5) | (df["anomaly"] == 1)).to_numpy()
+    X[:, 1] = np.where(trend_deg, 2.0, 1.0).astype(np.float32)
+    X[:, 2] = df["wear_factor"].to_numpy(dtype=np.float32)
+    X[:, 3] = df["cooling_efficiency"].to_numpy(dtype=np.float32)
+    X[:, 4] = df["lubrication_health"].to_numpy(dtype=np.float32)
+    X[:, 5] = df["combustion_index"].to_numpy(dtype=np.float32)
+    X[:, 6] = df["vibration_health"].to_numpy(dtype=np.float32)
+
+    sensor_drift = (df["fault_type"] == "Sensor drift").to_numpy()
+    X[:, 7] = np.clip(1.0 - sensor_drift * df["fault_severity"].to_numpy(), 0.0, 1.0).astype(np.float32)
+
+    sev = df["fault_severity"].to_numpy(dtype=np.float32)
+    ftype = df["fault_type"].to_numpy()
+    X[:, 8] = np.where(np.isin(ftype, ["Misfire", "Combustion instability"]), sev, 0.0)
+    X[:, 9] = np.where(np.isin(ftype, ["Overheating", "Cooling degradation"]), sev, 0.0)
+    X[:, 10] = np.where(ftype == "Lubrication issue", sev, 0.0)
+    X[:, 11] = np.where(ftype == "Abnormal vibration", sev, 0.0)
+    X[:, 12] = np.where(ftype == "Injector abnormality", sev, 0.0)
+
+    X[:, 13] = (df["engine_age_hours"] % 100.0).to_numpy(dtype=np.float32)
+
+    X[:, 14] = np.abs(df["cht_C"].to_numpy() - 120.0) / 15.0
+    X[:, 15] = df["vibration_rms"].to_numpy() / 0.5
+    X[:, 16] = np.abs(df["oil_pressure_bar"].to_numpy() - 4.0) / 0.5
+    X[:, 17] = np.abs(df["fuel_flow_Lph"].to_numpy() - 16.0) / 5.0
+    X[:, 18] = (sev * 0.05).astype(np.float32)
+
+    rul = df["rul_hours"].to_numpy(dtype=np.float32)
+    wear = df["wear_factor"].to_numpy(dtype=np.float32)
+    y = np.maximum(0.0, (1.0 - wear) / np.maximum(rul, 1.0)).astype(np.float32)
+
+    return WearRateDataset(X=X, y=y)
+
+
+def load_rotax_telemetry_features(
+    csv_path: Optional[Path | str] = None,
+    split: Optional[str] = None,
+) -> Tuple[np.ndarray, np.ndarray, List[str]]:
+    """Extract raw numerical telemetry and condition features for direct RUL regression.
+
+    Returns (X, y_rul_hours, feature_names).
+    """
+    import pandas as pd
+
+    if csv_path is None:
+        root = Path(__file__).resolve().parent.parent.parent
+        if split in ("train", "val", "test"):
+            csv_path = root / "data" / f"rotax_912_rul_{split}.csv"
+        else:
+            csv_path = root / "data" / "rotax_912_rul_dataset.csv"
+    else:
+        csv_path = Path(csv_path)
+
+    df = pd.read_csv(csv_path)
+    feature_cols = [
+        "ambient_temperature_C", "altitude_m", "humidity_percent", "air_density",
+        "wind_speed_mps", "rpm", "manifold_pressure_kPa", "throttle_percent",
+        "cht_C", "egt_C", "oil_temp_C", "oil_pressure_bar", "fuel_flow_Lph",
+        "battery_voltage", "alternator_current_A", "vibration_rms",
+        "injection_timing_deg", "engine_load_percent", "thermal_efficiency",
+        "combustion_index", "lubrication_health", "vibration_health",
+        "cooling_efficiency", "health_index", "engine_age_hours",
+        "cumulative_cycles", "wear_factor", "carbon_deposit_index",
+        "bearing_wear_index", "anomaly", "fault_severity",
+    ]
+    X = df[feature_cols].to_numpy(dtype=np.float32)
+    y = df["rul_hours"].to_numpy(dtype=np.float32)
+    return X, y, feature_cols
+
+
 __all__ = [
     "ClosedFormWearRate",
     "FEATURE_DIM",
@@ -599,6 +702,8 @@ __all__ = [
     "build_dataset",
     "health_to_features",
     "load_model",
+    "load_rotax_rul_dataset",
+    "load_rotax_telemetry_features",
     "save_model",
     "train_wear_model",
 ]

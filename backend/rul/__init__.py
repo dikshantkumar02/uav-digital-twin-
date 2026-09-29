@@ -50,6 +50,8 @@ from .model import (
     build_dataset,
     health_to_features,
     load_model,
+    load_rotax_rul_dataset,
+    load_rotax_telemetry_features,
     save_model,
     train_wear_model,
 )
@@ -125,6 +127,8 @@ __all__ = [
     "evaluate_rul",
     "health_to_features",
     "load_model",
+    "load_rotax_rul_dataset",
+    "load_rotax_telemetry_features",
     "mae",
     "mape",
     "new_trend_history",
