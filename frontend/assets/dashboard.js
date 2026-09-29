@@ -488,17 +488,27 @@
   // -------- Acknowledge ------------------------------------------
   function acknowledgeAlert(alertId) {
     const state = alertState.get(alertId);
-    if (!state) return;
-    state.acked = true;
-    // Refresh visible popup.
-    if (state.element) refreshPopupEl(state);
-    // Refresh the alert center if it's open.
-    if (document.getElementById("alert-center").classList.contains("open")) {
-      renderAlertCenter();
+    if (state) {
+      state.acked = true;
+      if (state.element) refreshPopupEl(state);
+      hidePopup(alertId);
+      const ac = document.getElementById("alert-center");
+      if (ac && ac.classList.contains("open")) {
+        renderAlertCenter();
+      }
+      if (currentDetailId === alertId) {
+        openDetail(alertId);
+      }
     }
-    // Update the detail modal if it's open on this alert.
-    if (currentDetailId === alertId) {
-      openDetail(alertId);
+
+    if (typeof garudAlerts !== "undefined" && Array.isArray(garudAlerts)) {
+      const gAlert = garudAlerts.find((a) => a.id === alertId);
+      if (gAlert) {
+        gAlert.status = "Acknowledged";
+        if (typeof renderAlertsSummary === "function") renderAlertsSummary();
+        if (typeof renderActiveAlertsTable === "function") renderActiveAlertsTable();
+        if (typeof selectAlert === "function") selectAlert(alertId);
+      }
     }
   }
 
@@ -3181,15 +3191,6 @@
           ? "ai-recommendation-panel rec-critical"
           : "ai-recommendation-panel";
     }
-  }
-
-  function acknowledgeAlert(id) {
-    const alert = garudAlerts.find((a) => a.id === id);
-    if (!alert) return;
-    alert.status = "Acknowledged";
-    renderAlertsSummary();
-    renderActiveAlertsTable();
-    selectAlert(id);
   }
 
   function resolveAlert(id) {
