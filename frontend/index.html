@@ -229,7 +229,7 @@
         </div>
         <div class="tile" id="tile-rul">
           <div class="tile-header">
-            <span class="tile-label">Remaining Useful Life</span>
+            <span class="tile-label">Engine Remaining Useful Life</span>
             <span class="tile-chip" id="tile-rul-chip">CONFIDENCE: —</span>
           </div>
           <div class="tile-value" id="tile-rul-value">—</div>
@@ -1380,7 +1380,8 @@
               <span class="alert-hero-chip warn" id="badge-warning-alerts" style="display:none;">0 WARNING</span>
               <span class="alert-hero-chip chain">CHAIN: ANOMALY → AI → ACTION</span>
             </div>
-            <span class="section-subtitle">Real-time engine threshold detection, digital twin physics assessment, and closed-loop corrective actions</span>
+            <span class="section-subtitle">Real-time engine threshold detection, digital twin physics assessment, and
+              closed-loop corrective actions</span>
           </div>
           <div class="alerts-actions-header">
             <button id="btn-ack-all-alerts" class="btn-ops-action">
@@ -1405,7 +1406,11 @@
             <div class="kpi-header-row">
               <span class="kpi-label">Critical Alerts</span>
               <span class="kpi-icon-badge crit">
-                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                  <circle cx="12" cy="12" r="10" />
+                  <line x1="12" y1="8" x2="12" y2="12" />
+                  <line x1="12" y1="16" x2="12.01" y2="16" />
+                </svg>
               </span>
             </div>
             <div class="kpi-val text-danger" id="alert-kpi-critical">0</div>
@@ -1415,7 +1420,11 @@
             <div class="kpi-header-row">
               <span class="kpi-label">Active Warnings</span>
               <span class="kpi-icon-badge warn">
-                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                  <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z" />
+                  <line x1="12" y1="9" x2="12" y2="13" />
+                  <line x1="12" y1="17" x2="12.01" y2="17" />
+                </svg>
               </span>
             </div>
             <div class="kpi-val text-warning" id="alert-kpi-warning">0</div>
@@ -1425,7 +1434,10 @@
             <div class="kpi-header-row">
               <span class="kpi-label">Resolved</span>
               <span class="kpi-icon-badge resolved">
-                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                  <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" />
+                  <polyline points="22 4 12 14.01 9 11.01" />
+                </svg>
               </span>
             </div>
             <div class="kpi-val text-green" id="alert-kpi-resolved">8</div>
@@ -1435,7 +1447,9 @@
             <div class="kpi-header-row">
               <span class="kpi-label">Total Events</span>
               <span class="kpi-icon-badge total">
-                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <polyline points="22 12 18 12 15 21 9 3 6 12 2 12" />
+                </svg>
               </span>
             </div>
             <div class="kpi-val text-cyan" id="alert-kpi-total">8</div>
@@ -1467,7 +1481,9 @@
                 </tr>
               </thead>
               <tbody id="active-alerts-tbody">
-                <tr><td colspan="8" class="insufficient">Zero active alerts. All propulsion parameters nominal.</td></tr>
+                <tr>
+                  <td colspan="8" class="insufficient">Zero active alerts. All propulsion parameters nominal.</td>
+                </tr>
               </tbody>
             </table>
           </div>
@@ -1509,7 +1525,8 @@
                 </div>
                 <div class="detail-item">
                   <span class="detail-k">Severity Level</span>
-                  <span class="detail-v" id="detail-severity"><span class="alert-sev-chip opt"><span class="chip-dot opt"></span>NOMINAL</span></span>
+                  <span class="detail-v" id="detail-severity"><span class="alert-sev-chip opt"><span
+                        class="chip-dot opt"></span>NOMINAL</span></span>
                 </div>
                 <div class="detail-item">
                   <span class="detail-k">Affected Parameter</span>
@@ -1552,7 +1569,8 @@
               <div class="ai-assessment-box">
                 <div class="ai-box-label">AI Assessment</div>
                 <blockquote class="ai-assessment-quote" id="ai-assessment-quote">
-                  "Continuous physics-informed surveillance active. All cylinder heads, lubrication, and vibration signatures are nominal."
+                  "Continuous physics-informed surveillance active. All cylinder heads, lubrication, and vibration
+                  signatures are nominal."
                 </blockquote>
               </div>
 
