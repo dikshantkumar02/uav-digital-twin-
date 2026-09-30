@@ -52,9 +52,10 @@ aero-dt-dashboard = "backend.dashboard.main:main"
 
 [tool.setuptools.packages.find]
 where = ["."]
-include = ["backend*"]
+include = ["backend*", "app*"]
 
 [tool.pytest.ini_options]
+pythonpath = ["."]
 testpaths = ["backend/tests", "tests"]
 python_files = ["test_*.py"]
 addopts = "-ra --strict-markers"

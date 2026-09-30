@@ -1,0 +1,41 @@
+# Git and VCS
+.git
+.github
+
+# Virtual Environments
+.venv/
+venv/
+env/
+
+# Python Cache
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+
+# Environment and Secret Files
+.env
+.env.*
+.streamlit/secrets.toml
+secrets/
+data/private/
+
+# Testing & Coverage
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+tests/
+coverage.xml
+htmlcov/
+.coverage
+
+# IDEs & Editor
+.vscode/
+.idea/
+*.swp
+
+# Build artifacts
+dist/
+build/
+*.egg-info/
+*.log

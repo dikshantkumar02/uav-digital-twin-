@@ -1,0 +1,61 @@
+# ==============================================================================
+# Docker Compose for Unofficial Rotax 912 Simulation & Streamlit Dashboard
+#
+# SAFETY DISCLAIMER:
+# Unofficial simulation-only project. Not certified for flight operations,
+# flight-critical control, aircraft maintenance release, or limit determination.
+# ==============================================================================
+
+services:
+  backend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: rotax912_backend
+    restart: unless-stopped
+    ports:
+      - "${PORT:-8000}:8000"
+    environment:
+      - APP_ENV=${APP_ENV:-production}
+      - PORT=8000
+      - LOG_LEVEL=${LOG_LEVEL:-INFO}
+      - ENABLE_API_DOCS=${ENABLE_API_DOCS:-true}
+      - ALLOWED_ORIGINS=${ALLOWED_ORIGINS:-http://localhost:8501,http://dashboard:8501}
+      - ENGINE_CONFIG_PATH=/app/config/rotax_912_simulation.yaml
+    volumes:
+      - ./config:/app/config:ro
+    healthcheck:
+      test: ["CMD-SHELL", "python -c \"import urllib.request; urllib.request.urlopen('http://localhost:8000/health')\" || exit 1"]
+      interval: 15s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+    networks:
+      - rotax-net
+
+  dashboard:
+    build:
+      context: .
+      dockerfile: Dockerfile.dashboard
+    container_name: rotax912_dashboard
+    restart: unless-stopped
+    ports:
+      - "${DASHBOARD_PORT:-8501}:8501"
+    environment:
+      - BACKEND_URL=http://backend:8000
+      - DASHBOARD_PORT=8501
+    depends_on:
+      backend:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "python -c \"import urllib.request; urllib.request.urlopen('http://localhost:8501/_stcore/health')\" || exit 1"]
+      interval: 15s
+      timeout: 5s
+      retries: 3
+      start_period: 15s
+    networks:
+      - rotax-net
+
+networks:
+  rotax-net:
+    driver: bridge
