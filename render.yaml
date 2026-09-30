@@ -1,0 +1,18 @@
+# ==============================================================================
+# Render Blueprint Specification for UAV Digital Twin Backend
+# ==============================================================================
+
+services:
+  - type: web
+    name: uav-digital-twin-backend
+    runtime: python
+    plan: free
+    rootDir: backend
+    buildCommand: pip install -r requirements.txt
+    startCommand: uvicorn app:app --host 0.0.0.0 --port $PORT
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.11.9
+      - key: ALLOWED_ORIGINS
+        value: "*"
+    healthCheckPath: /health

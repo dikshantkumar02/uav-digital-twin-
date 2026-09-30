@@ -17,6 +17,21 @@
 (() => {
   "use strict";
 
+  // Centralized deployment-safe API & WebSocket configuration
+  const API_BASE = (window.BACKEND_API_URL || "").replace(/\/+$/, "");
+  function getWsUrl(path) {
+    if (window.BACKEND_WS_URL) {
+      return window.BACKEND_WS_URL.replace(/\/+$/, "") + path;
+    }
+    if (API_BASE) {
+      const wsProto = API_BASE.startsWith("https") ? "wss://" : "ws://";
+      const host = API_BASE.replace(/^https?:\/\//, "");
+      return `${wsProto}${host}${path}`;
+    }
+    const proto = location.protocol === "https:" ? "wss://" : "ws://";
+    return `${proto}${location.host}${path}`;
+  }
+
   // -------- Status colour map (driven by enums, not magic numbers) ------
   const COLORS = {
     GO: "var(--green)",
@@ -2595,10 +2610,7 @@
   // -------- Transport: WebSocket primary, REST fallback ----------------
   let ws = null;
   function connect() {
-    const url =
-      (location.protocol === "https:" ? "wss://" : "ws://") +
-      location.host +
-      "/api/stream";
+    const url = getWsUrl("/api/stream");
     try {
       ws = new WebSocket(url);
     } catch (e) {
@@ -2630,7 +2642,7 @@
   function startPolling() {
     setInterval(async () => {
       try {
-        const r = await fetch("/api/snapshot/latest");
+        const r = await fetch(API_BASE + "/api/snapshot/latest");
         const j = await r.json();
         if (j.snapshot) update(j.snapshot);
       } catch (e) {
@@ -2642,7 +2654,7 @@
   // -------- Scenarios dropdown ----------------------------------------
   async function loadScenarios() {
     try {
-      const r = await fetch("/api/scenarios");
+      const r = await fetch(API_BASE + "/api/scenarios");
       const j = await r.json();
       const sel = $("scenario-select");
       sel.innerHTML = "";
@@ -2661,10 +2673,10 @@
         opt.textContent = s.name + (s.description ? " — " + s.description : "");
         sel.appendChild(opt);
       });
-      const current = await (await fetch("/api/scenario")).json();
+      const current = await (await fetch(API_BASE + "/api/scenario")).json();
       sel.value = current.name;
       sel.addEventListener("change", async () => {
-        const r = await fetch("/api/scenario", {
+        const r = await fetch(API_BASE + "/api/scenario", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ name: sel.value }),
@@ -4387,7 +4399,7 @@
   loadScenarios();
   // Seed the time-series from the history endpoint so the
   // charts aren't empty on first load.
-  fetch("/api/history?limit=" + MAX_POINTS)
+  fetch(API_BASE + "/api/history?limit=" + MAX_POINTS)
     .then((r) => r.json())
     .then((j) => {
       (j.snapshots || []).forEach((s) => update(s));

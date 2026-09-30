@@ -1,0 +1,14 @@
+# ==============================================================================
+# Netlify Configuration for UAV Digital Twin Frontend
+# ==============================================================================
+
+[build]
+  # Publish directory containing index.html and assets
+  publish = "frontend"
+
+[[headers]]
+  for = "/*"
+  [headers.values]
+    X-Frame-Options = "DENY"
+    X-Content-Type-Options = "nosniff"
+    Referrer-Policy = "strict-origin-when-cross-origin"

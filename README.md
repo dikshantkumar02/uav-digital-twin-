@@ -248,3 +248,61 @@ ruff check .
 ## License & Safety Notice
 
 This software is released for academic, research, and simulation purposes only. Not affiliated with, endorsed by, or certified by BRP-Rotax GmbH & Co KG.
+
+---
+
+# Deployment
+
+The application is structured for free-tier cloud deployment:
+- **Frontend** → Netlify (Static Hosting)
+- **Backend** → Render (Free Web Service)
+- **Repository** → GitHub
+
+---
+
+## 1. Backend: Render Free Web Service
+
+1. Connect your GitHub repository to [Render](https://render.com/).
+2. Create a new **Web Service**.
+3. Configure the service settings:
+   - **Name**: `uav-digital-twin-backend` (or any preferred name)
+   - **Language / Environment**: `Python 3`
+   - **Root Directory**: `backend`
+   - **Build Command**: `pip install -r requirements.txt`
+   - **Start Command**: `uvicorn app:app --host 0.0.0.0 --port $PORT`
+   - **Plan**: `Free`
+4. Set Environment Variables:
+   - `PYTHON_VERSION`: `3.11.9`
+   - `ALLOWED_ORIGINS`: `*` (or your Netlify site URL, e.g. `https://your-site.netlify.app`)
+5. Health Check Path:
+   - Set health check path to `/health`.
+6. Once deployed, note your Render URL: `https://your-backend.onrender.com`.
+
+---
+
+## 2. Frontend: Netlify
+
+1. Connect your GitHub repository to [Netlify](https://www.netlify.com/).
+2. Netlify will automatically detect [`netlify.toml`](file:///c:/Users/DIKSHANT%20KUMAR/Desktop/prototype_3/netlify.toml):
+   - **Base directory**: (leave blank / root)
+   - **Build command**: (leave blank, no build step required)
+   - **Publish directory**: `frontend`
+3. Configure Backend Connection:
+   - Option A (**URL Parameter - Instant Test**): Open your Netlify site with `?backend=https://your-backend.onrender.com`:
+     ```text
+     https://your-site.netlify.app/?backend=https://your-backend.onrender.com
+     ```
+   - Option B (**Static Config**): In [`frontend/assets/config.js`](file:///c:/Users/DIKSHANT%20KUMAR/Desktop/prototype_3/frontend/assets/config.js), set:
+     ```javascript
+     window.BACKEND_API_URL = "https://your-backend.onrender.com";
+     window.BACKEND_WS_URL  = "wss://your-backend.onrender.com";
+     ```
+4. Deploy the site.
+
+---
+
+## 3. WebSocket Deployment Notes
+
+- The real-time telemetry stream is served on `/api/stream`.
+- Render natively supports persistent WebSockets over standard HTTPS/WSS on port 443 without special reverse proxy configuration.
+- The frontend client automatically connects to `wss://your-backend.onrender.com/api/stream` when `BACKEND_API_URL` or `BACKEND_WS_URL` is configured. If WebSocket is closed or unsupported, the client automatically falls back to HTTP REST polling (`/api/snapshot/latest`).

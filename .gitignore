@@ -24,3 +24,4 @@ build/
 .vscode/
 data/private/
 secrets/
+.vercel/

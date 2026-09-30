@@ -1,0 +1,12 @@
+# ==============================================================================
+# Runtime Dependencies for UAV Digital Twin Backend (Render Deployment)
+# ==============================================================================
+numpy>=1.26.0,<3.0.0
+scipy>=1.11.0
+pandas>=2.1.0
+pyyaml>=6.0.1,<7.0.0
+pydantic>=2.6.0,<3.0.0
+scikit-learn>=1.4.0
+fastapi>=0.110.0,<1.0.0
+uvicorn[standard]>=0.28.0,<1.0.0
+websockets>=12.0.0
