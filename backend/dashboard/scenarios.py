@@ -254,13 +254,13 @@ def _build_registry() -> Dict[str, ScenarioSpec]:
         s.name: s
         for s in [
             ScenarioSpec.healthy_60s(),
-            ScenarioSpec.engine_degradation_60s(),
             ScenarioSpec.overheating_60s(),
+            ScenarioSpec.sensor_fault_60s(),
+            ScenarioSpec.engine_degradation_60s(),
             ScenarioSpec.lubrication_pressure_60s(),
             ScenarioSpec.vibration_anomaly_60s(),
             ScenarioSpec.performance_loss_60s(),
             ScenarioSpec.environmental_disturbance_60s(),
-            ScenarioSpec.sensor_fault_60s(),
         ]
     }
 

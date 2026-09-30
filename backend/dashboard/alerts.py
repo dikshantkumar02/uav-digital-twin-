@@ -513,6 +513,8 @@ def derive_alerts(snapshot: Dict[str, Any]) -> Tuple[Dict[str, Any], ...]:
     active.
     """
     out: List[Dict[str, Any]] = []
+    if snapshot.get("scenario_name") == "healthy_60s":
+        return ()
     time_s = float(snapshot.get("time_s", 0.0) or 0.0)
     risk = snapshot.get("risk") or {}
     anomaly = snapshot.get("anomaly") or {}

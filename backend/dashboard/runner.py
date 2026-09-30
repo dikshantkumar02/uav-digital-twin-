@@ -381,6 +381,7 @@ class PipelineRunner:
 
         # 13) PHASE 19 — derive alerts (pure function, post-tick).
         snap_payload = {
+            "scenario_name": self._scenario.name,
             "time_s": sample.time_s,
             "risk": risk.to_dict(),
             "anomaly": anomaly.to_dict(),

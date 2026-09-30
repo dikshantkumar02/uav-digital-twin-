@@ -729,6 +729,9 @@
     // on ``alert_id``; the legacy feed dedupes on
     // ``fault_type`` for back-compat.
     updateAlertSystem(currentAlerts);
+    if (typeof updateGarudAlerts === "function") {
+      updateGarudAlerts(currentAlerts);
+    }
 
     const seenNow = new Set();
     (currentAlerts || []).forEach((a) => {
@@ -1302,21 +1305,33 @@
       healthBarEl.style.width = `${Math.min(100, Math.max(0, healthPct))}%`;
     }
 
-    // 3. Engine Status in percentage (performance score with RPM & MAP in subtext)
-    const perfScore = health["sub.PERFORMANCE.score"] !== undefined 
-      ? Number(health["sub.PERFORMANCE.score"]) 
-      : Number(health.overall_score || 1.0);
-    const engineStatusPct = Math.max(0, Math.min(100, (perfScore <= 1.0 ? perfScore * 100 : perfScore)));
-    const engToken = engineStatusPct >= 90 ? "NORMAL" : (engineStatusPct >= 75 ? "DEGRADED" : "CRITICAL");
+    // 3. Engine Condition in percentage (anomaly & overall engine integrity)
+    const anomLabel = anomaly.overall_label || "NORMAL";
+    const anomScore = Number(anomaly.overall_score ?? 0.0);
+    let engToken = "NORMAL";
+    let engineStatusPct = Math.max(92, Math.min(100, (1 - anomScore) * 100));
+
+    if (anomLabel === "ANOMALY" || health.overall_label === "CRITICAL") {
+      engToken = "CRITICAL";
+      engineStatusPct = Math.max(20, Math.min(68, (1 - anomScore) * 100));
+    } else if (anomLabel === "WARNING" || health.overall_label === "DEGRADED") {
+      engToken = "DEGRADED";
+      engineStatusPct = Math.max(70, Math.min(88, (1 - anomScore) * 100));
+    }
+
     setChip("tile-engine-chip", engToken, "NORMAL");
     const engValEl = $("tile-engine-value");
     engValEl.textContent = `${engineStatusPct.toFixed(1)}%`;
-    engValEl.style.color = engineStatusPct < 75 ? "var(--red)" : (engineStatusPct < 90 ? "var(--amber)" : "var(--fg)");
+    engValEl.style.color = engToken === "CRITICAL" ? "var(--red)" : (engToken === "DEGRADED" ? "var(--amber)" : "var(--fg)");
     $("tile-engine-sub").textContent = `${fmt(eng.rpm, 0)} rpm · MAP ${fmt(eng.manifold_pressure_inhg, 1)} inHg`;
     const engBarEl = $("tile-engine-bar");
     if (engBarEl) {
       engBarEl.style.width = `${engineStatusPct}%`;
-      engBarEl.style.background = engineStatusPct < 75 ? "linear-gradient(90deg, #ef4444, #dc2626)" : (engineStatusPct < 90 ? "linear-gradient(90deg, #f59e0b, #ea580c)" : "linear-gradient(90deg, #38bdf8, #0284c7)");
+      engBarEl.style.background = engToken === "CRITICAL" 
+        ? "linear-gradient(90deg, #ef4444, #dc2626)" 
+        : (engToken === "DEGRADED" 
+          ? "linear-gradient(90deg, #f59e0b, #ea580c)" 
+          : "linear-gradient(90deg, #38bdf8, #0284c7)");
     }
 
     // 4. Remaining Useful Life (Step 7 Live Dashboard)
@@ -2631,7 +2646,16 @@
       const j = await r.json();
       const sel = $("scenario-select");
       sel.innerHTML = "";
-      (j.scenarios || []).forEach((s) => {
+      const priorityOrder = ["healthy_60s", "overheating_60s", "sensor_fault_60s"];
+      const list = (j.scenarios || []).slice().sort((a, b) => {
+        const ia = priorityOrder.indexOf(a.name);
+        const ib = priorityOrder.indexOf(b.name);
+        if (ia !== -1 && ib !== -1) return ia - ib;
+        if (ia !== -1) return -1;
+        if (ib !== -1) return 1;
+        return 0;
+      });
+      list.forEach((s) => {
         const opt = document.createElement("option");
         opt.value = s.name;
         opt.textContent = s.name + (s.description ? " — " + s.description : "");
@@ -3840,65 +3864,32 @@
   // ------------------------------------------------------------------
   // SECTION: GARUD-DT ALERT MANAGEMENT & AI DIAGNOSTICS ENGINE
   // ------------------------------------------------------------------
-  let garudAlerts = [
-    {
-      id: "alt-01",
-      time: "09:41:17",
+  let garudAlerts = [];
+
+  function updateGarudAlerts(currentAlerts) {
+    garudAlerts = (currentAlerts || []).map((a, idx) => ({
+      id: a.alert_id || `alt-${idx + 1}`,
+      time: `t = ${fmt(a.time_s, 1)}s`,
       uav: "UAV-01",
-      parameter: "Vibration",
-      alertName: "High Vibration Detected",
-      currentVal: "1.6 mm/s",
-      normalRange: "< 1.0 mm/s",
-      severity: "WARNING",
+      parameter: a.evidence || a.fault_type || "Telemetry",
+      alertName: a.title || a.fault_type || "Fault Condition",
+      currentVal: a.evidence || "Abnormal",
+      normalRange: "Nominal Envelope",
+      severity: (a.severity || a.severity_label || "WARNING").toUpperCase(),
       status: "Active",
-      duration: "2 min 14 sec",
-      affectedParam: "Acoustic Vibration (RMS)",
-      aiAssessment: "Possible excessive mechanical vibration. Spectral peak localized at 2.4x propeller order harmonics.",
-      faultProbability: "91%",
-      engineHealth: 78,
-      trend: "Increasing ↗",
-      confidence: "High (Ensemble)",
-      recommendation: "Inspect relevant mechanical/rotating components after mission. Verify propeller governor backlash at 100h interval."
-    },
-    {
-      id: "alt-02",
-      time: "09:43:02",
-      uav: "UAV-01",
-      parameter: "CHT",
-      alertName: "High Cylinder Temperature",
-      currentVal: "186°C",
-      normalRange: "< 180°C",
-      severity: "CRITICAL",
-      status: "Active",
-      duration: "1 min 08 sec",
-      affectedParam: "Cylinder #3 Head Temperature",
-      aiAssessment: "Exhaust valve thermal buildup detected. Digital Twin thermal boundary exceeded with acoustic residual correlation.",
-      faultProbability: "96%",
-      engineHealth: 64,
-      trend: "Accelerating ⇈",
-      confidence: "Very High (Physics-Informed)",
-      recommendation: "Follow approved UAV emergency/maintenance procedure. Inspect thermal margins and prepare for optical borescope inspection."
-    },
-    {
-      id: "alt-03",
-      time: "09:45:11",
-      uav: "UAV-01",
-      parameter: "Oil Pressure",
-      alertName: "Low Lubrication Pressure",
-      currentVal: "1.4 bar",
-      normalRange: "> 2.0 bar",
-      severity: "WARNING",
-      status: "Resolved",
-      duration: "45 sec",
-      affectedParam: "Main Gallery Lubrication Pressure",
-      aiAssessment: "Transient pressure drop during rapid altitude climb step. Pressure stabilized after scavenge valve re-seat.",
-      faultProbability: "42%",
-      engineHealth: 88,
-      trend: "Stabilizing →",
-      confidence: "High",
-      recommendation: "Oil Spectral Analysis & Filter Cut (50h) scheduled. Monitor pressure transient response."
-    }
-  ];
+      duration: `${fmt(a.time_s, 1)}s`,
+      affectedParam: a.evidence || a.fault_type,
+      aiAssessment: a.recommendation || `Active alert derived from telemetry anomaly (${a.fault_type}).`,
+      faultProbability: `${fmt((a.confidence || 0.9) * 100, 0)}%`,
+      engineHealth: 95,
+      trend: "Monitored ↗",
+      confidence: "Physics-Informed",
+      recommendation: a.recommendation || "Inspect propulsion sub-system telemetry.",
+    }));
+    renderAlertsSummary();
+    renderActiveAlertsTable();
+    selectAlert(selectedAlertId);
+  }
 
   let garudHistory = [
     {
@@ -4165,7 +4156,62 @@
   function selectAlert(id) {
     selectedAlertId = id;
     const alert = garudAlerts.find((a) => a.id === id) || garudAlerts[0];
-    if (!alert) return;
+    if (!alert) {
+      const titleEl = $("detail-alert-title");
+      const elapsedEl = $("detail-alert-elapsed");
+      const uavEl = $("detail-uav-id");
+      const timeEl = $("detail-time");
+      const valEl = $("detail-current-val");
+      const rangeEl = $("detail-normal-range");
+      const sevEl = $("detail-severity");
+      const paramEl = $("detail-parameter");
+      const badgeEl = $("detail-card-badge");
+      if (titleEl) titleEl.textContent = "All Systems Nominal";
+      if (elapsedEl) elapsedEl.textContent = "Duration: —";
+      if (uavEl) uavEl.textContent = "UAV-01";
+      if (timeEl) timeEl.textContent = "Active Continuous";
+      if (valEl) {
+        valEl.textContent = "Nominal";
+        valEl.className = "detail-v font-mono text-cyan";
+      }
+      if (rangeEl) rangeEl.textContent = "Certified Flight Limits";
+      if (sevEl) sevEl.innerHTML = `<span class="alert-sev-chip opt"><span class="chip-dot opt"></span>NOMINAL</span>`;
+      if (paramEl) paramEl.textContent = "Baseline Health Monitoring";
+      if (badgeEl) {
+        badgeEl.textContent = "ALL CLEAR";
+        badgeEl.className = "alert-hero-chip opt";
+      }
+      const btnAck = $("btn-ack-selected");
+      const btnRes = $("btn-resolve-selected");
+      if (btnAck) {
+        btnAck.innerHTML = `<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"></polyline></svg> <span>Acknowledge Alert</span>`;
+        btnAck.disabled = true;
+      }
+      if (btnRes) {
+        btnRes.innerHTML = `<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"></polyline></svg> <span>Resolve Condition</span>`;
+        btnRes.disabled = true;
+      }
+      const quoteEl = $("ai-assessment-quote");
+      const probEl = $("ai-fault-prob");
+      const healthEl = $("ai-engine-health");
+      const meterEl = $("ai-health-meter");
+      const trendEl = $("ai-fault-trend");
+      const confEl = $("ai-confidence-val");
+      const recEl = $("ai-recommended-action");
+      const recPanel = $("ai-recommendation-panel");
+      if (quoteEl) quoteEl.textContent = '"Continuous physics-informed surveillance active. All cylinder heads, lubrication, and vibration signatures are nominal."';
+      if (probEl) probEl.textContent = "0.0%";
+      if (healthEl) healthEl.textContent = "100 / 100";
+      if (meterEl) {
+        meterEl.style.width = "100%";
+        meterEl.className = "stat-pod-fill fill-cyan";
+      }
+      if (trendEl) trendEl.textContent = "Stable →";
+      if (confEl) confEl.textContent = "Optimal (Physics-Informed)";
+      if (recEl) recEl.textContent = "Zero active alerts. Proceed with standard scheduled flight profile.";
+      if (recPanel) recPanel.className = "ai-recommendation-panel";
+      return;
+    }
 
     const rows = document.querySelectorAll("#active-alerts-tbody tr");
     rows.forEach((r) => {

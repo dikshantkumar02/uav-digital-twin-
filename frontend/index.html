@@ -1408,7 +1408,7 @@
                 <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
               </span>
             </div>
-            <div class="kpi-val text-danger" id="alert-kpi-critical">1</div>
+            <div class="kpi-val text-danger" id="alert-kpi-critical">0</div>
             <div class="kpi-sub"><span class="kpi-sub-pill crit">IMMEDIATE ACTION</span></div>
           </div>
           <div class="summary-kpi-card alert-kpi-warn">
@@ -1438,7 +1438,7 @@
                 <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
               </span>
             </div>
-            <div class="kpi-val text-cyan" id="alert-kpi-total">9</div>
+            <div class="kpi-val text-cyan" id="alert-kpi-total">8</div>
             <div class="kpi-sub"><span class="kpi-sub-pill total">SORTIE LOGGED</span></div>
           </div>
         </div>
@@ -1450,7 +1450,7 @@
               <span class="card-tag">ACTIVE FEED</span>
               <span class="card-title">Active Alerts & Telemetry Anomaly Stream</span>
             </div>
-            <span class="badge badge-info" id="active-alerts-count">2 Active Conditions</span>
+            <span class="badge badge-info" id="active-alerts-count">0 Active Conditions</span>
           </div>
           <div class="active-alerts-table-wrap">
             <table class="alerts-table" id="active-alerts-table">
@@ -1467,7 +1467,7 @@
                 </tr>
               </thead>
               <tbody id="active-alerts-tbody">
-                <!-- Dynamically populated -->
+                <tr><td colspan="8" class="insufficient">Zero active alerts. All propulsion parameters nominal.</td></tr>
               </tbody>
             </table>
           </div>
@@ -1482,12 +1482,12 @@
                 <span class="card-tag">INVESTIGATION</span>
                 <span class="card-title">Alert Details & Parameter Limits</span>
               </div>
-              <span class="badge badge-warning" id="detail-card-badge">WARNING</span>
+              <span class="badge badge-accent" id="detail-card-badge">NOMINAL</span>
             </div>
             <div class="alert-details-content">
               <div class="alert-title-bar">
-                <h3 id="detail-alert-title">High Vibration Detected</h3>
-                <span class="detail-time-elapsed mono" id="detail-alert-elapsed">Duration: 2 min 14 sec</span>
+                <h3 id="detail-alert-title">All Propulsion Systems Nominal</h3>
+                <span class="detail-time-elapsed mono" id="detail-alert-elapsed">Duration: —</span>
               </div>
 
               <div class="alert-detail-grid">
@@ -1497,36 +1497,36 @@
                 </div>
                 <div class="detail-item">
                   <span class="detail-k">Detected Time</span>
-                  <span class="detail-v font-mono" id="detail-time">09:41:17 UTC</span>
+                  <span class="detail-v font-mono" id="detail-time">Active Continuous</span>
                 </div>
                 <div class="detail-item">
                   <span class="detail-k">Current Value</span>
-                  <span class="detail-v font-mono text-warning" id="detail-current-val">1.6 mm/s</span>
+                  <span class="detail-v font-mono text-cyan" id="detail-current-val">Nominal</span>
                 </div>
                 <div class="detail-item">
                   <span class="detail-k">Normal Threshold</span>
-                  <span class="detail-v font-mono" id="detail-normal-range">&lt; 1.0 mm/s</span>
+                  <span class="detail-v font-mono" id="detail-normal-range">Certified Limits</span>
                 </div>
                 <div class="detail-item">
                   <span class="detail-k">Severity Level</span>
-                  <span class="detail-v" id="detail-severity"><span class="chip chip-warn">Warning</span></span>
+                  <span class="detail-v" id="detail-severity"><span class="alert-sev-chip opt"><span class="chip-dot opt"></span>NOMINAL</span></span>
                 </div>
                 <div class="detail-item">
                   <span class="detail-k">Affected Parameter</span>
-                  <span class="detail-v" id="detail-parameter">Acoustic Vibration (RMS)</span>
+                  <span class="detail-v" id="detail-parameter">Baseline Health Monitoring</span>
                 </div>
               </div>
 
               <div class="alert-actions-footer">
                 <div class="alert-action-prompt">Operator Decision & Workflow:</div>
                 <div class="alert-btn-group">
-                  <button id="btn-ack-selected" class="btn btn-secondary btn-ack-action">
+                  <button id="btn-ack-selected" class="btn btn-secondary btn-ack-action" disabled>
                     <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                       <polyline points="20 6 9 17 4 12"></polyline>
                     </svg>
                     <span>Acknowledge Alert</span>
                   </button>
-                  <button id="btn-resolve-selected" class="btn btn-primary btn-resolve-action">
+                  <button id="btn-resolve-selected" class="btn btn-primary btn-resolve-action" disabled>
                     <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                       <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
                       <polyline points="22 4 12 14.01 9 11.01"></polyline>
@@ -1552,7 +1552,7 @@
               <div class="ai-assessment-box">
                 <div class="ai-box-label">AI Assessment</div>
                 <blockquote class="ai-assessment-quote" id="ai-assessment-quote">
-                  "Possible excessive mechanical vibration. Spectral peak localized at 2.4x propeller order harmonics."
+                  "Continuous physics-informed surveillance active. All cylinder heads, lubrication, and vibration signatures are nominal."
                 </blockquote>
               </div>
 
@@ -1560,22 +1560,22 @@
               <div class="ai-metrics-grid">
                 <div class="ai-stat-pod">
                   <span class="stat-pod-k">Fault Probability</span>
-                  <span class="stat-pod-v font-mono text-warning" id="ai-fault-prob">91%</span>
+                  <span class="stat-pod-v font-mono text-cyan" id="ai-fault-prob">0.0%</span>
                 </div>
                 <div class="ai-stat-pod">
                   <span class="stat-pod-k">Engine Health</span>
-                  <span class="stat-pod-v font-mono text-cyan" id="ai-engine-health">78 / 100</span>
+                  <span class="stat-pod-v font-mono text-cyan" id="ai-engine-health">100 / 100</span>
                   <div class="stat-pod-track">
-                    <div class="stat-pod-fill fill-warning" id="ai-health-meter" style="width: 78%;"></div>
+                    <div class="stat-pod-fill fill-cyan" id="ai-health-meter" style="width: 100%;"></div>
                   </div>
                 </div>
                 <div class="ai-stat-pod">
                   <span class="stat-pod-k">Degradation Trend</span>
-                  <span class="stat-pod-v font-mono text-warning" id="ai-fault-trend">Increasing ↗</span>
+                  <span class="stat-pod-v font-mono text-green" id="ai-fault-trend">Stable →</span>
                 </div>
                 <div class="ai-stat-pod">
                   <span class="stat-pod-k">Model Confidence</span>
-                  <span class="stat-pod-v font-mono text-green" id="ai-confidence-val">High (Ensemble)</span>
+                  <span class="stat-pod-v font-mono text-green" id="ai-confidence-val">Optimal (Physics-Informed)</span>
                 </div>
               </div>
 
@@ -1590,8 +1590,7 @@
                   <span>Recommended Action</span>
                 </div>
                 <div class="rec-panel-body" id="ai-recommended-action">
-                  Recommended: Inspect relevant mechanical/rotating components after mission. Verify propeller governor
-                  backlash at 100h interval.
+                  Zero active alerts. All propulsion telemetry nominal. Proceed with scheduled mission profile.
                 </div>
               </div>
             </div>
