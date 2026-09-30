@@ -1145,6 +1145,118 @@
     c.update("none");
   }
 
+  // -------- Subsystems Definitions & Health Integrity -----------------
+  const SUBSYSTEM_META = {
+    THERMAL: {
+      label: "Thermal & Cooling",
+      desc: "Engine block, CHT & EGT heat transfer",
+      icon: `<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M14 14.76V3.5a2.5 2.5 0 0 0-5 0v11.26a4.5 4.5 0 1 0 5 0z"></path></svg>`,
+    },
+    LUBRICATION: {
+      label: "Lubrication & Oil",
+      desc: "Pressure line, scavenge & pump hydraulics",
+      icon: `<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z"></path></svg>`,
+    },
+    PERFORMANCE: {
+      label: "Combustion & Power",
+      desc: "Brake power, fuel flow & BSFC efficiency",
+      icon: `<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon></svg>`,
+    },
+    MECHANICAL: {
+      label: "Mechanical Integrity",
+      desc: "Bearing wear, vibration & kinematics",
+      icon: `<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>`,
+    },
+    SENSORS: {
+      label: "Sensor Ring & Avionics",
+      desc: "Telemetry harness & redundant channel health",
+      icon: `<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"></polyline></svg>`,
+    },
+  };
+
+  function extractSubsystems(h) {
+    if (!h) return [];
+    const names = new Set();
+    Object.keys(h).forEach((k) => {
+      const m = k.match(/^sub\.([A-Z0-9_]+)\./i);
+      if (m) names.add(m[1].toUpperCase());
+    });
+    const order = ["THERMAL", "LUBRICATION", "PERFORMANCE", "MECHANICAL", "SENSORS"];
+    const allNames = Array.from(names);
+    allNames.sort((a, b) => {
+      const ia = order.indexOf(a);
+      const ib = order.indexOf(b);
+      if (ia !== -1 && ib !== -1) return ia - ib;
+      if (ia !== -1) return -1;
+      if (ib !== -1) return 1;
+      return a.localeCompare(b);
+    });
+    return allNames.map((name) => {
+      const scoreVal = h[`sub.${name}.score`];
+      const confVal = h[`sub.${name}.confidence`];
+      const contribs = h[`sub.${name}.contributors`] || [];
+      const notes = h[`sub.${name}.notes`] || [];
+      const score = scoreVal !== undefined && scoreVal !== null ? Number(scoreVal) : 1.0;
+      const confidence = confVal !== undefined && confVal !== null ? Number(confVal) : 1.0;
+      return {
+        name,
+        score,
+        confidence,
+        contributors: Array.isArray(contribs) ? contribs : [],
+        notes: Array.isArray(notes) ? notes : [],
+      };
+    });
+  }
+
+  function formatDriverSignal(sig) {
+    if (!sig) return { title: "Telemetry Signal", sub: "General flight parameter", icon: `<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><circle cx="12" cy="12" r="10"></circle></svg>` };
+    const s = sig.toLowerCase();
+    if (s.includes("health")) {
+      return {
+        title: "Engine Overall Health",
+        sub: "Aggregated subsystem health baseline",
+        icon: `<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M22 12h-4l-3 9L9 3l-3 9H2"></path></svg>`,
+      };
+    }
+    if (s.includes("rul")) {
+      return {
+        title: "RUL Prognostics Horizon",
+        sub: "Time-to-exceedance lower confidence bound",
+        icon: `<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>`,
+      };
+    }
+    if (s.includes("anomaly")) {
+      return {
+        title: "AI Anomaly Score",
+        sub: "Multivariate neural deviation detector",
+        icon: `<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"></path></svg>`,
+      };
+    }
+    if (s.includes("phase")) {
+      const phaseName = sig.split(".")[1] || "MISSION";
+      return {
+        title: `Mission Phase (${phaseName})`,
+        sub: "Dynamic phase-dependent safety envelope modifier",
+        icon: `<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><polygon points="3 11 22 2 13 21 11 13 3 11"></polygon></svg>`,
+      };
+    }
+    return {
+      title: sig.replace(/[._]/g, " ").toUpperCase(),
+      sub: "Direct sensor attribution",
+      icon: `<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><circle cx="12" cy="12" r="10"></circle></svg>`,
+    };
+  }
+
+  function formatDriverValue(sig, val) {
+    if (val === undefined || val === null) return "—";
+    const num = Number(val);
+    const s = (sig || "").toLowerCase();
+    if (s.includes("rul")) return `${num.toFixed(0)} hrs`;
+    if (s.includes("health") || s.includes("anomaly")) return `${(num * 100).toFixed(1)}%`;
+    if (s.includes("phase")) return num >= 0 ? `+${(num * 100).toFixed(1)}%` : `${(num * 100).toFixed(1)}%`;
+    return fmt(num, 3);
+  }
+
   // -------- Snapshot update -------------------------------------------
   function update(snap) {
     if (!snap) return;
@@ -1209,8 +1321,27 @@
 
     // 4. Remaining Useful Life (Step 7 Live Dashboard)
     const confVal = rul.confidence !== null && rul.confidence !== undefined ? Number(rul.confidence) : null;
-    const confText = confVal !== null ? `${Math.round(confVal <= 1.0 ? confVal * 100 : confVal)}%` : (rul.status || "—");
-    setChip("tile-rul-chip", confText, "—");
+    const rulConfPct = confVal !== null ? `${Math.round(confVal <= 1.0 ? confVal * 100 : confVal)}%` : null;
+    const confText = rulConfPct ? `CONFIDENCE: ${rulConfPct}` : (rul.status ? `CONFIDENCE: ${rul.status}` : "CONFIDENCE: —");
+    const rulChip = $("tile-rul-chip");
+    if (rulChip) {
+      rulChip.textContent = confText;
+      if (confVal !== null) {
+        if (confVal >= 0.80) {
+          rulChip.style.background = "rgba(16, 185, 129, 0.16)";
+          rulChip.style.color = "var(--green)";
+          rulChip.style.border = "1px solid rgba(16, 185, 129, 0.35)";
+        } else if (confVal >= 0.60) {
+          rulChip.style.background = "rgba(245, 158, 11, 0.16)";
+          rulChip.style.color = "var(--amber)";
+          rulChip.style.border = "1px solid rgba(245, 158, 11, 0.35)";
+        } else {
+          rulChip.style.background = "rgba(239, 68, 68, 0.16)";
+          rulChip.style.color = "var(--red)";
+          rulChip.style.border = "1px solid rgba(239, 68, 68, 0.35)";
+        }
+      }
+    }
 
     const remHours = rul.remaining_hours !== null && rul.remaining_hours !== undefined
       ? Number(rul.remaining_hours)
@@ -1248,104 +1379,409 @@
     pushHealth(health.overall_score);
     pushRul(rul.tte_hours_central, rul.tte_hours_lower, rul.tte_hours_upper);
 
-    // -------- RIGHT column
-    // Current diagnosis — drivers (kept from PHASE 13) + subsystem mini-bars.
+    // -------- Diagnosis & Risk Drivers
     const drvBody = $("risk-drivers-body");
     if (drvBody) {
-      drvBody.innerHTML = "";
-      (risk.drivers || []).slice(0, 5).forEach((d) => {
-        const sevTok =
-          d.severity === "INFO"
-            ? "GO"
-            : d.severity === "WARNING"
-              ? "CAUTION"
-              : d.severity === "ABORT"
-                ? "ABORT"
-                : d.severity === "RETURN_TO_BASE"
-                  ? "RETURN_TO_BASE"
-                  : "GO";
-        const tr = document.createElement("tr");
-        tr.innerHTML = `<td>${d.signal || "—"}</td>
-          <td class="num">${safe(d.value, 3)}</td>
-          <td class="num">${safe(d.contribution, 3)}</td>
-          <td><span class="chip" style="background:${color(sevTok)}">${d.severity || "—"}</span></td>`;
-        drvBody.appendChild(tr);
-      });
-      if ((risk.drivers || []).length === 0) {
-        drvBody.innerHTML = `<tr><td colspan="4" class="insufficient">no driver data</td></tr>`;
+      const drivers = risk.drivers || [];
+      if (drivers.length === 0) {
+        drvBody.innerHTML = `<div class="insufficient">no active risk driver attribution</div>`;
+      } else {
+        let worstSev = "INFO";
+        drvBody.innerHTML = drivers
+          .slice(0, 5)
+          .map((d) => {
+            const meta = formatDriverSignal(d.signal);
+            const valFormatted = formatDriverValue(d.signal, d.value);
+            const contrib = Number(d.contribution || 0);
+            const contribPct = (contrib * 100).toFixed(1);
+            const contribSign = contrib > 0 ? "+" : "";
+            const sev = (d.severity || "INFO").toUpperCase();
+
+            if (sev === "CRITICAL" || sev === "ABORT") worstSev = "CRITICAL";
+            else if ((sev === "WARNING" || sev === "CAUTION") && worstSev !== "CRITICAL") worstSev = "WARNING";
+
+            const sevClass =
+              sev === "CRITICAL" || sev === "ABORT"
+                ? "sev-critical"
+                : sev === "WARNING" || sev === "CAUTION"
+                ? "sev-warning"
+                : "sev-info";
+
+            const barWidth = Math.min(100, Math.max(4, Math.abs(contrib * 100) * 2));
+
+            return `
+              <div class="driver-item-pod">
+                <div class="driver-pod-top">
+                  <div class="driver-title-group">
+                    <span class="driver-icon-badge ${sevClass}">${meta.icon}</span>
+                    <div class="driver-title-text">
+                      <span class="driver-name">${meta.title}</span>
+                      <span class="driver-desc">${d.note ? d.note.replace(/_/g, " ") : meta.sub}</span>
+                    </div>
+                  </div>
+                  <div class="driver-metric-group">
+                    <span class="driver-val-pill mono">${valFormatted}</span>
+                    <div class="driver-contrib-wrap" title="Risk Score Contribution">
+                      <span class="driver-contrib-val mono">${contribSign}${contribPct}%</span>
+                      <div class="driver-contrib-bar"><div class="driver-contrib-fill ${sevClass}" style="width: ${barWidth}%;"></div></div>
+                    </div>
+                    <span class="event-sev-badge ${sevClass}">${sev}</span>
+                  </div>
+                </div>
+              </div>`;
+          })
+          .join("");
+
+        const chip = $("drivers-status-chip");
+        if (chip) {
+          if (worstSev === "CRITICAL") {
+            chip.textContent = "HIGH ATTRIBUTION";
+            chip.className = "drivers-status-chip crit";
+          } else if (worstSev === "WARNING") {
+            chip.textContent = "ELEVATED INFLUENCE";
+            chip.className = "drivers-status-chip deg";
+          } else {
+            chip.textContent = "NOMINAL ENVELOPE";
+            chip.className = "drivers-status-chip opt";
+          }
+        }
       }
     }
 
+
+
     const subs = $("subsystems");
     if (subs) {
-      subs.innerHTML = "";
-      const subKeys = Object.keys(health).filter((k) => k.startsWith("sub."));
-      subKeys.forEach((k) => {
-        const sub = health[k] || {};
-        const score = Number(sub.score || 0);
-        const div = document.createElement("div");
-        div.className = "subsystem";
-        div.innerHTML = `<div class="name">${sub.subsystem || k}</div>
-          <div class="bar"><div class="fill" style="width:${(score * 100).toFixed(1)}%; background:${scoreToColor(score)}"></div></div>
-          <div class="val">${fmt(score, 2)}</div>`;
-        subs.appendChild(div);
-      });
-      if (subKeys.length === 0) {
-        subs.innerHTML = `<div class="insufficient">no subsystem data</div>`;
+      const subList = extractSubsystems(health);
+      if (subList.length === 0) {
+        subs.innerHTML = `<div class="insufficient">no subsystem telemetry received</div>`;
+      } else {
+        let worstScore = 1.0;
+        subs.innerHTML = subList
+          .map((sub) => {
+            const meta = SUBSYSTEM_META[sub.name] || {
+              label: sub.name,
+              desc: "Telemetry subsystem integrity",
+              icon: `<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="8"></circle></svg>`,
+            };
+
+            const score = Math.max(0, Math.min(1, sub.score));
+            if (score < worstScore) worstScore = score;
+            const pct = (score * 100).toFixed(1);
+
+            let statusClass = "opt";
+            let statusLabel = "HEALTHY";
+            if (score < 0.65) {
+              statusClass = "crit";
+              statusLabel = "CRITICAL";
+            } else if (score < 0.85) {
+              statusClass = "deg";
+              statusLabel = "DEGRADED";
+            }
+
+            let contribsHtml = "";
+            if (sub.contributors && sub.contributors.length > 0) {
+              contribsHtml = `
+                <div class="sub-contrib-row">
+                  <span class="contrib-label">Active Warning Drivers:</span>
+                  ${sub.contributors.map((c) => `<span class="contrib-tag">${c.replace(/_/g, " ")}</span>`).join("")}
+                </div>`;
+            }
+
+            return `
+              <div class="subsystem-item-pod">
+                <div class="sub-pod-header">
+                  <div class="sub-pod-title-group">
+                    <span class="sub-icon-badge ${statusClass}">${meta.icon}</span>
+                    <div class="sub-title-text">
+                      <span class="sub-name">${meta.label}</span>
+                      <span class="sub-desc">${meta.desc}</span>
+                    </div>
+                  </div>
+                  <div class="sub-pod-metric-group">
+                    <span class="sub-score-pct mono">${pct}%</span>
+                    <span class="sub-status-pill ${statusClass}">${statusLabel}</span>
+                  </div>
+                </div>
+                <div class="sub-meter-track">
+                  <div class="sub-meter-fill ${statusClass}" style="width: ${pct}%;"></div>
+                </div>
+                ${contribsHtml}
+              </div>`;
+          })
+          .join("");
+
+        const chip = $("subsystems-status-chip");
+        if (chip) {
+          if (worstScore >= 0.85) {
+            chip.textContent = "ALL NOMINAL";
+            chip.className = "subsystems-status-chip opt";
+          } else if (worstScore >= 0.65) {
+            chip.textContent = "ATTENTION NEEDED";
+            chip.className = "subsystems-status-chip deg";
+          } else {
+            chip.textContent = "CRITICAL ANOMALY";
+            chip.className = "subsystems-status-chip crit";
+          }
+        }
       }
     }
 
     // Fault probabilities
     const fpBody = $("fault-probabilities-body");
     if (fpBody) {
-      fpBody.innerHTML = "";
-      if (!fc) {
-        fpBody.innerHTML = `<tr><td colspan="2" class="insufficient">no classifier output</td></tr>`;
-      } else {
-        const probs = Object.entries(fc.probabilities || {}).sort(
-          (a, b) => b[1] - a[1],
-        );
-        probs.forEach(([k, v]) => {
-          const tr = document.createElement("tr");
-          tr.innerHTML = `<td>${k}</td><td class="num">${fmt(v, 2)}</td>`;
-          fpBody.appendChild(tr);
-        });
+      const FAULT_REGISTRY = [
+        { key: "OVERHEATING", label: "Thermal Overheating", desc: "Excess heat dissipation & CHT excursion" },
+        { key: "COOLING_DEGRADATION", label: "Cooling Degradation", desc: "Coolant airflow restriction or radiator drop" },
+        { key: "BEARING_WEAR", label: "Bearing Mechanical Wear", desc: "Hydrodynamic friction & journal clearance" },
+        { key: "LUBRICATION_FAILURE", label: "Lubrication Oil Loss", desc: "Pump pressure collapse & dry sump starving" },
+        { key: "FUEL_LEAK", label: "Fuel Line Leak", desc: "Delivery line pressure drop & mixture leanout" },
+        { key: "VIBRATION_ANOMALY", label: "Vibration Harmonics", desc: "Crankshaft unbalance or mount damping defect" },
+      ];
+
+      const probs = (fc && fc.probabilities) || {};
+      const hasPredictions = Object.keys(probs).length > 0;
+      let worstProb = 0;
+
+      const items = FAULT_REGISTRY.map((reg) => {
+        const p = probs[reg.key] !== undefined ? Number(probs[reg.key]) : (hasPredictions ? 0 : 0.001);
+        if (p > worstProb) worstProb = p;
+        return {
+          ...reg,
+          prob: p,
+          pct: (p * 100).toFixed(1),
+        };
+      });
+
+      items.sort((a, b) => b.prob - a.prob);
+
+      fpBody.innerHTML = items.map((item) => {
+        let sevClass = "sev-info";
+        let sevLabel = "NOMINAL";
+        if (item.prob >= 0.50) {
+          sevClass = "sev-critical";
+          sevLabel = "CONFIRMED";
+        } else if (item.prob >= 0.20) {
+          sevClass = "sev-warning";
+          sevLabel = "SUSPECT";
+        }
+
+        const barW = Math.max(item.prob > 0 ? 3 : 0, Math.min(100, item.prob * 100));
+
+        return `
+          <div class="fault-item-pod">
+            <div class="fault-pod-top">
+              <div class="fault-name-wrap">
+                <span class="fault-bullet ${sevClass}"></span>
+                <span class="fault-name">${item.label}</span>
+              </div>
+              <div class="fault-metric-wrap">
+                <span class="fault-prob-val mono">${item.prob < 0.005 ? "< 0.5%" : item.pct + "%"}</span>
+                <span class="event-sev-badge ${sevClass}">${sevLabel}</span>
+              </div>
+            </div>
+            <div class="fault-bar-track">
+              <div class="fault-bar-fill ${sevClass}" style="width: ${barW}%;"></div>
+            </div>
+          </div>`;
+      }).join("");
+
+      const chip = $("fault-status-chip");
+      if (chip) {
+        if (worstProb >= 0.50) {
+          chip.textContent = "FAULT ACTIVE";
+          chip.className = "fault-status-chip crit";
+        } else if (worstProb >= 0.20) {
+          chip.textContent = "SUSPECT FAULT";
+          chip.className = "fault-status-chip deg";
+        } else {
+          chip.textContent = "ALL CLEAR";
+          chip.className = "fault-status-chip opt";
+        }
       }
     }
 
-    // Sensor health
+    // Hardware Sensor Integrity
     const shBody = $("sensor-health-body");
     if (shBody) {
-      shBody.innerHTML = "";
-      // Per-channel noise mode from the sample (if any). Fall
-      // back to "—" when not provided.
-      const sample = snap.sample || {};
-      const sensorHealth = sample.sensor_health || {};
-      const channels = Object.keys(sensorHealth).sort();
-      if (channels.length === 0) {
-        shBody.innerHTML = `<div class="row"><span class="k">All channels</span><span class="v" style="color:var(--green)">NORMAL</span></div>`;
-      } else {
-        channels.forEach((ch) => {
-          const mode = (sensorHealth[ch] && sensorHealth[ch].mode) || "—";
-          const tag = mode === "NORMAL" ? "OK" : mode;
-          const tok = mode === "NORMAL" ? "GO" : "CAUTION";
-          shBody.insertAdjacentHTML(
-            "beforeend",
-            `<div class="row"><span class="k">${ch}</span>
-              <span class="v" style="color:${color(tok)}">${tag}</span></div>`,
-          );
-        });
+      const SENSOR_CHANNELS = [
+        { key: "rpm", name: "Engine RPM", unit: "rpm", val: eng.rpm },
+        { key: "egt", name: "Exhaust Gas (EGT)", unit: "°C", val: eng.egt_c },
+        { key: "cht", name: "Cylinder Head (CHT)", unit: "°C", val: eng.cht_c },
+        { key: "oil_pressure", name: "Oil Pressure", unit: "psi", val: eng.oil_pressure_psi },
+        { key: "oil_temperature", name: "Oil Temp", unit: "°C", val: eng.oil_temp_c || 58 },
+        { key: "fuel_flow", name: "Fuel Flow", unit: "L/h", val: eng.fuel_flow_lph },
+        { key: "vibration", name: "IMU Vibration", unit: "g", val: eng.vibration_rms_g },
+        { key: "airspeed", name: "Airspeed", unit: "m/s", val: env.airspeed_mps },
+        { key: "altitude", name: "Baro Altitude", unit: "m", val: env.altitude_m },
+        { key: "ambient_temperature", name: "Outside Air Temp", unit: "°C", val: env.temperature_c },
+        { key: "ambient_pressure", name: "Static Pressure", unit: "hPa", val: env.pressure_pa ? env.pressure_pa / 100 : null },
+      ];
+
+      let degradedCount = 0;
+      shBody.innerHTML = SENSOR_CHANNELS.map((ch) => {
+        const inBounds = residual[`residual.${ch.key}.in_bounds`];
+        const conf = residual[`residual.${ch.key}.confidence`];
+        const anomLabel = anomaly[`channel.${ch.key}.label`];
+
+        let state = "opt";
+        let stateLabel = "OK";
+
+        if (inBounds === false || anomLabel === "ANOMALY") {
+          state = "crit";
+          stateLabel = "FAULT";
+          degradedCount++;
+        } else if (anomLabel === "WARNING" || (conf !== undefined && conf !== null && Number(conf) < 0.85)) {
+          state = "deg";
+          stateLabel = "DRIFT";
+          degradedCount++;
+        }
+
+        const valStr = ch.val !== undefined && ch.val !== null ? `${fmt(ch.val, ch.unit === "rpm" || ch.unit === "m" || ch.unit === "hPa" ? 0 : 1)} ${ch.unit}` : "ONLINE";
+
+        return `
+          <div class="sensor-pod-item">
+            <div class="sensor-pod-left">
+              <span class="sensor-dot ${state}"></span>
+              <span class="sensor-pod-name">${ch.name}</span>
+            </div>
+            <div class="sensor-pod-right">
+              <span class="sensor-val-str mono">${valStr}</span>
+              <span class="sensor-state-pill ${state}">${stateLabel}</span>
+            </div>
+          </div>`;
+      }).join("");
+
+      const chip = $("sensor-status-chip");
+      if (chip) {
+        if (degradedCount === 0) {
+          chip.textContent = "11/11 CHANNELS ONLINE";
+          chip.className = "sensor-status-chip opt";
+        } else {
+          chip.textContent = `${degradedCount} DEGRADED`;
+          chip.className = "sensor-status-chip deg";
+        }
       }
     }
 
-    // Environmental condition
-    $("env-alt").textContent = fmt(env.altitude_m, 0) + " m";
-    $("env-airspeed").textContent = fmt(env.airspeed_mps, 1) + " m/s";
-    $("env-temp").textContent = fmt(env.temperature_c, 1) + " °C";
-    $("env-pressure").textContent = fmt(env.pressure_pa, 0) + " Pa";
-    $("env-wind").textContent = fmt(env.total_w_mps, 2) + " m/s";
-    $("env-gust").textContent = env.is_gust_active ? "yes" : "no";
-    $("env-vac").textContent = fmt(env.vertical_accel_mps2, 2) + " m/s²";
+    // Environmental condition & Flight Regime
+    const altM = Number(env.altitude_m || 0);
+    const altFt = altM * 3.28084;
+    const flNum = Math.round(altFt / 100);
+    const flStr = flNum < 100 ? `FL0${flNum}` : `FL${flNum}`;
+    const altEl = $("env-alt");
+    if (altEl) altEl.textContent = fmt(altM, 0) + " m";
+    const altFtEl = $("env-alt-ft");
+    if (altFtEl) altFtEl.textContent = `${Math.round(altFt).toLocaleString()} ft MSL`;
+    const flEl = $("env-fl-badge");
+    if (flEl) flEl.textContent = flStr;
+
+    const speedMps = Number(env.airspeed_mps || 0);
+    const speedKts = speedMps * 1.94384;
+    const sos = Number(env.speed_of_sound_mps || 340.29);
+    const mach = sos > 0 ? (speedMps / sos).toFixed(2) : "0.00";
+    const spdEl = $("env-airspeed");
+    if (spdEl) spdEl.textContent = fmt(speedMps, 1) + " m/s";
+    const ktsEl = $("env-airspeed-kts");
+    if (ktsEl) ktsEl.textContent = `${fmt(speedKts, 1)} kts`;
+    const machEl = $("env-mach-badge");
+    if (machEl) machEl.textContent = `M ${mach}`;
+
+    const tempC = Number(env.temperature_c || 0);
+    const tempK = Number(env.temperature_k || (tempC + 273.15));
+    const isaTempC = 15.0 - (0.0065 * altM);
+    const deltaIsa = tempC - isaTempC;
+    const tempEl = $("env-temp");
+    if (tempEl) tempEl.textContent = fmt(tempC, 1) + " °C";
+    const tempKEl = $("env-temp-k");
+    if (tempKEl) tempKEl.textContent = `${fmt(tempK, 1)} K`;
+    const isaEl = $("env-isa-delta");
+    if (isaEl) {
+      isaEl.textContent = `ΔISA ${deltaIsa >= 0 ? "+" : ""}${deltaIsa.toFixed(1)}°C`;
+    }
+
+    const pressPa = Number(env.pressure_pa || 101325);
+    const pressHpa = pressPa / 100;
+    const density = Number(env.density_kg_per_m3 || (pressPa / (287.05 * Math.max(1, tempK))));
+    const rhoRatio = (density / 1.225) * 100;
+    const pressEl = $("env-pressure");
+    if (pressEl) pressEl.textContent = fmt(pressHpa, 1) + " hPa";
+    const densEl = $("env-density-val");
+    if (densEl) densEl.textContent = `ρ: ${fmt(density, 3)} kg/m³`;
+    const rhoEl = $("env-rho-ratio");
+    if (rhoEl) rhoEl.textContent = `${rhoRatio.toFixed(1)}% ISA`;
+
+    const windMps = Number(env.total_w_mps || 0);
+    const isGust = Boolean(env.is_gust_active);
+    const windEl = $("env-wind");
+    if (windEl) windEl.textContent = `${windMps >= 0 ? "+" : ""}${fmt(windMps, 2)} m/s`;
+    const gustEl = $("env-gust");
+    if (gustEl) {
+      gustEl.textContent = isGust ? "GUST ACTIVE" : "QUIESCENT";
+      gustEl.className = isGust ? "env-micro-badge deg" : "env-micro-badge opt";
+    }
+
+    const vacMps2 = Number(env.vertical_accel_mps2 || 0);
+    const gLoad = 1.0 + (vacMps2 / 9.80665);
+    const vacEl = $("env-vac");
+    if (vacEl) vacEl.textContent = `${vacMps2 >= 0 ? "+" : ""}${fmt(vacMps2, 2)} m/s²`;
+    const gEl = $("env-gload-val");
+    if (gEl) gEl.textContent = `${fmt(gLoad, 3)} G`;
+    const gBadge = $("env-gload-badge");
+    if (gBadge) {
+      const gDelta = Math.abs(gLoad - 1.0);
+      if (gDelta > 0.3) {
+        gBadge.textContent = "ACCEL";
+        gBadge.className = "env-micro-badge crit";
+      } else if (gDelta > 0.08) {
+        gBadge.textContent = "UNSTEADY";
+        gBadge.className = "env-micro-badge deg";
+      } else {
+        gBadge.textContent = "STABLE";
+        gBadge.className = "env-micro-badge opt";
+      }
+    }
+
+    // Flight Regime & Airspace Card
+    const regimeChip = $("env-regime-chip");
+    if (regimeChip) {
+      const phase = (risk.mission_phase || "CRUISE").toUpperCase();
+      regimeChip.textContent = `REGIME: ${phase}`;
+    }
+
+    const turbPill = $("env-turb-pill");
+    const turbVal = $("env-turb-val");
+    const turbDetail = $("env-turb-detail");
+    if (turbPill && turbVal && turbDetail) {
+      const absW = Math.abs(windMps);
+      if (isGust || absW > 2.0) {
+        turbPill.textContent = "DISTURBANCE";
+        turbPill.className = "env-fms-pill crit";
+        turbVal.textContent = "Class 3 · Active Disturbance";
+        turbDetail.textContent = `Gust/Wind shear ±${fmt(absW, 2)} m/s · High turbulence`;
+      } else if (absW > 0.6) {
+        turbPill.textContent = "LIGHT CHOP";
+        turbPill.className = "env-fms-pill deg";
+        turbVal.textContent = "Class 2 · Mild Disturbance";
+        turbDetail.textContent = `Vertical variance ±${fmt(absW, 2)} m/s · Atmospheric Chop`;
+      } else {
+        turbPill.textContent = "SMOOTH AIR";
+        turbPill.className = "env-fms-pill opt";
+        turbVal.textContent = "Class 1 · Laminar Airflow";
+        turbDetail.textContent = "Vertical variance < 0.5 m/s · Stable air mass";
+      }
+    }
+
+    const twinComp = $("env-twin-comp");
+    if (twinComp) {
+      twinComp.textContent = `Air Density ρ: ${fmt(density, 3)} kg/m³ · SoS: ${fmt(sos, 0)} m/s`;
+    }
+
+    const pitotDrift = $("env-pitot-drift");
+    if (pitotDrift) {
+      const qDyn = 0.5 * density * Math.pow(speedMps, 2);
+      pitotDrift.textContent = `Dyn Press q: ${fmt(qDyn / 1000, 2)} kPa · Dual Pitot Cross-Check`;
+    }
 
     // -------- BOTTOM strip
     // Mission timeline
@@ -1582,17 +2018,17 @@
     const subList = $("maint-subsystems-list");
     if (subList) {
       subList.innerHTML = "";
-      const subKeys = Object.keys(health).filter((k) => k.startsWith("sub."));
-      if (subKeys.length === 0) {
+      const subsArr = extractSubsystems(health);
+      if (subsArr.length === 0) {
         subList.innerHTML = `<div class="insufficient">Awaiting subsystem wear telemetry…</div>`;
       } else {
-        subKeys.forEach((k) => {
-          const sub = health[k] || {};
-          const score = Number(sub.score || 0);
+        subsArr.forEach((sub) => {
+          const meta = SUBSYSTEM_META[sub.name] || { label: sub.name };
+          const score = Math.max(0, Math.min(1, sub.score));
           const wear = Math.max(0, Math.min(1, 1 - score));
           const div = document.createElement("div");
           div.className = "subsystem";
-          div.innerHTML = `<div class="name">${sub.subsystem || k}</div>
+          div.innerHTML = `<div class="name">${meta.label}</div>
             <div class="bar"><div class="fill" style="width:${(wear * 100).toFixed(1)}%; background:${scoreToColor(1 - wear)}"></div></div>
             <div class="val">${(wear * 100).toFixed(0)}% wear</div>`;
           subList.appendChild(div);
@@ -3693,27 +4129,27 @@
 
       const isCrit = alert.severity === "CRITICAL";
       const sevBadge = isCrit
-        ? `<span class="badge badge-danger">🔴 Critical</span>`
-        : `<span class="badge badge-warning">⚠️ Warning</span>`;
+        ? `<span class="alert-sev-chip crit"><span class="chip-dot crit"></span>CRITICAL</span>`
+        : `<span class="alert-sev-chip warn"><span class="chip-dot warn"></span>WARNING</span>`;
 
       const statusBadge =
         alert.status === "Resolved"
-          ? `<span class="badge badge-success">Resolved</span>`
+          ? `<span class="alert-status-badge resolved"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>Resolved</span>`
           : alert.status === "Acknowledged"
-            ? `<span class="badge badge-info">Acknowledged</span>`
-            : `<span class="badge badge-warning">Active</span>`;
+            ? `<span class="alert-status-badge ack"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 14 14"/></svg>Acknowledged</span>`
+            : `<span class="alert-status-badge active"><span class="pulse-ring"></span>Active</span>`;
 
       tr.innerHTML = `
-        <td class="font-mono">${alert.time}</td>
-        <td><strong>${alert.uav}</strong></td>
-        <td>${alert.parameter}</td>
-        <td style="font-weight:600;">${alert.alertName}</td>
-        <td class="font-mono ${isCrit ? "text-danger" : "text-warning"}">${alert.currentVal}</td>
+        <td class="font-mono text-muted">${alert.time}</td>
+        <td><span class="alert-uav-pill">${alert.uav}</span></td>
+        <td><span class="alert-param-pill">${alert.parameter}</span></td>
+        <td class="alert-name-cell">${alert.alertName}</td>
+        <td><span class="alert-val-box mono ${isCrit ? "crit" : "warn"}">${alert.currentVal}</span></td>
         <td>${sevBadge}</td>
         <td>${statusBadge}</td>
         <td>
-          <button class="action-btn-pill" onclick="event.stopPropagation(); window.__resolveAlertById('${alert.id}')" ${alert.status === "Resolved" ? "disabled" : ""}>
-            ${alert.status === "Resolved" ? "Done" : "Resolve"}
+          <button class="action-btn-pill ${alert.status === "Resolved" ? "done" : "action"}" onclick="event.stopPropagation(); window.__resolveAlertById('${alert.id}')" ${alert.status === "Resolved" ? "disabled" : ""}>
+            ${alert.status === "Resolved" ? `<svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg> Done` : `<svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg> Resolve`}
           </button>
         </td>
       `;
@@ -3764,38 +4200,35 @@
     if (sevEl) {
       sevEl.innerHTML =
         alert.severity === "CRITICAL"
-          ? `<span class="badge badge-danger">CRITICAL</span>`
-          : `<span class="badge badge-warning">WARNING</span>`;
+          ? `<span class="alert-sev-chip crit"><span class="chip-dot crit"></span>CRITICAL</span>`
+          : `<span class="alert-sev-chip warn"><span class="chip-dot warn"></span>WARNING</span>`;
     }
     if (paramEl) paramEl.textContent = alert.affectedParam;
     if (badgeEl) {
       badgeEl.textContent = alert.severity;
       badgeEl.className =
         alert.severity === "CRITICAL"
-          ? "badge badge-danger"
-          : "badge badge-warning";
+          ? "alert-hero-chip crit"
+          : "alert-hero-chip warn";
     }
 
     const btnAck = $("btn-ack-selected");
     const btnRes = $("btn-resolve-selected");
     if (btnAck) {
-      if (alert.status === "Acknowledged") {
-        btnAck.innerHTML = `<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"></polyline></svg> <span>Acknowledged ✓</span>`;
-        btnAck.disabled = true;
-      } else if (alert.status === "Resolved") {
-        btnAck.innerHTML = `<span>Acknowledged ✓</span>`;
+      if (alert.status === "Acknowledged" || alert.status === "Resolved") {
+        btnAck.innerHTML = `<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"></polyline></svg> <span>Acknowledged ✓</span>`;
         btnAck.disabled = true;
       } else {
-        btnAck.innerHTML = `<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"></polyline></svg> <span>Acknowledge Alert</span>`;
+        btnAck.innerHTML = `<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"></polyline></svg> <span>Acknowledge Alert</span>`;
         btnAck.disabled = false;
       }
     }
     if (btnRes) {
       if (alert.status === "Resolved") {
-        btnRes.innerHTML = `<span>Resolved ✓</span>`;
+        btnRes.innerHTML = `<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg> <span>Resolved ✓</span>`;
         btnRes.disabled = true;
       } else {
-        btnRes.innerHTML = `<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg> <span>Resolve Condition</span>`;
+        btnRes.innerHTML = `<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg> <span>Resolve Condition</span>`;
         btnRes.disabled = false;
       }
     }
@@ -3881,14 +4314,18 @@
     filtered.forEach((h) => {
       const tr = document.createElement("tr");
       const isCrit = h.severity === "CRITICAL";
+      const sevBadge = isCrit
+        ? `<span class="alert-sev-chip crit"><span class="chip-dot crit"></span>CRITICAL</span>`
+        : `<span class="alert-sev-chip warn"><span class="chip-dot warn"></span>WARNING</span>`;
+
       tr.innerHTML = `
-        <td class="font-mono">${h.timestamp}</td>
-        <td><strong>${h.uav}</strong></td>
-        <td>${h.parameter}</td>
-        <td>${h.classification}</td>
-        <td class="font-mono">${h.peakVal}</td>
-        <td><span class="badge ${isCrit ? "badge-danger" : "badge-warning"}">${h.severity}</span></td>
-        <td><span class="badge badge-success">${h.status}</span></td>
+        <td class="font-mono text-muted">${h.timestamp}</td>
+        <td><span class="alert-uav-pill">${h.uav}</span></td>
+        <td><span class="alert-param-pill">${h.parameter}</span></td>
+        <td class="alert-name-cell">${h.classification}</td>
+        <td><span class="alert-val-box mono ${isCrit ? "crit" : "warn"}">${h.peakVal}</span></td>
+        <td>${sevBadge}</td>
+        <td><span class="alert-status-badge resolved"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>${h.status}</span></td>
         <td style="color:var(--fg-dim); font-size:11px;">${h.rootCause}</td>
       `;
       tbody.appendChild(tr);

@@ -27,7 +27,7 @@
         </div>
         <div class="brand-info">
           <span class="brand-title">GARUDH UAV Piston</span>
-          <span class="brand-sub">DIGITAL TWIN v2.4 by Team Shivam</span>
+          <span class="brand-sub">DIGITAL TWIN v2.4 by Team GARUDH</span>
         </div>
       </div>
 
@@ -230,7 +230,7 @@
         <div class="tile" id="tile-rul">
           <div class="tile-header">
             <span class="tile-label">Remaining Useful Life</span>
-            <span class="tile-chip" id="tile-rul-chip">—</span>
+            <span class="tile-chip" id="tile-rul-chip">CONFIDENCE: —</span>
           </div>
           <div class="tile-value" id="tile-rul-value">—</div>
           <div class="tile-bar-track">
@@ -632,54 +632,48 @@
           </div>
         </div>
         <div class="diagnostics-grid">
-          <div class="card">
+          <div class="card" id="card-risk-drivers">
             <div class="card-header">
-              <h2>Current Diagnosis & Risk Drivers</h2>
-              <span class="card-tag">ANALYTICS</span>
+              <div class="drivers-hdr-left">
+                <h2>Current Diagnosis & Risk Drivers</h2>
+                <span class="drivers-status-chip opt" id="drivers-status-chip">NOMINAL ENVELOPE</span>
+              </div>
+              <span class="card-tag">ATTRIBUTION</span>
             </div>
-            <table id="risk-drivers-table">
-              <thead>
-                <tr>
-                  <th>Signal</th>
-                  <th class="num">Value</th>
-                  <th class="num">Contrib.</th>
-                  <th>Sev.</th>
-                </tr>
-              </thead>
-              <tbody id="risk-drivers-body"></tbody>
-            </table>
+            <div id="risk-drivers-body" class="drivers-panel-body"></div>
           </div>
 
-          <div class="card">
+          <div class="card" id="card-subsystems-integrity">
             <div class="card-header">
-              <h2>Subsystems Health Integrity</h2>
-              <span class="card-tag">ASSETS</span>
+              <div class="subsystems-hdr-left">
+                <h2>Subsystems Health Integrity</h2>
+                <span class="subsystems-status-chip opt" id="subsystems-status-chip">ALL NOMINAL</span>
+              </div>
+              <span class="card-tag">5 ASSETS</span>
             </div>
-            <div id="subsystems"></div>
+            <div id="subsystems" class="subsystems-panel-body"></div>
           </div>
 
-          <div class="card">
+          <div class="card" id="card-fault-probabilities">
             <div class="card-header">
-              <h2>Fault Probabilities</h2>
-              <span class="card-tag">CLASSIFIER</span>
+              <div class="fault-hdr-left">
+                <h2>Fault Probabilities</h2>
+                <span class="fault-status-chip opt" id="fault-status-chip">ALL CLEAR</span>
+              </div>
+              <span class="card-tag">AI CLASSIFIER</span>
             </div>
-            <table>
-              <thead>
-                <tr>
-                  <th>Class</th>
-                  <th class="num">Prob.</th>
-                </tr>
-              </thead>
-              <tbody id="fault-probabilities-body"></tbody>
-            </table>
+            <div id="fault-probabilities-body" class="fault-panel-body"></div>
           </div>
 
-          <div class="card">
+          <div class="card" id="card-sensor-integrity">
             <div class="card-header">
-              <h2>Hardware Sensor Integrity</h2>
-              <span class="card-tag">HARDWARE</span>
+              <div class="sensor-hdr-left">
+                <h2>Hardware Sensor Integrity</h2>
+                <span class="sensor-status-chip opt" id="sensor-status-chip">11/11 CHANNELS ONLINE</span>
+              </div>
+              <span class="card-tag">AVIONICS</span>
             </div>
-            <div class="sensor-grid" id="sensor-health-body"></div>
+            <div class="sensor-matrix-grid" id="sensor-health-body"></div>
           </div>
         </div>
       </div>
@@ -698,44 +692,142 @@
         <div class="environment-grid">
           <div class="card env-card-main">
             <div class="card-header">
-              <h2>Atmospheric Telemetry</h2>
-              <span class="card-tag">WEATHER</span>
+              <div class="env-hdr-left">
+                <h2>Atmospheric Telemetry</h2>
+                <span class="env-status-chip opt" id="env-atmos-chip">ISA CALIBRATED</span>
+              </div>
+              <span class="card-tag">METEOROLOGY · ISA-1976</span>
             </div>
-            <div class="env-stack">
-              <div class="env-row"><span class="k">Altitude</span><span class="v" id="env-alt">—</span></div>
-              <div class="env-row"><span class="k">Airspeed</span><span class="v" id="env-airspeed">—</span></div>
-              <div class="env-row"><span class="k">Ambient Temperature</span><span class="v" id="env-temp">—</span>
+            <div class="env-pods-grid">
+              <div class="env-pod">
+                <div class="env-pod-header">
+                  <span class="env-pod-label">Barometric Altitude</span>
+                  <span class="env-pod-tag">ALT</span>
+                </div>
+                <div class="env-pod-hero">
+                  <span class="env-hero-val mono" id="env-alt">— m</span>
+                </div>
+                <div class="env-pod-sub">
+                  <span class="env-sub-val" id="env-alt-ft">— ft MSL</span>
+                  <span class="env-micro-badge" id="env-fl-badge">FL000</span>
+                </div>
               </div>
-              <div class="env-row"><span class="k">Ambient Pressure</span><span class="v" id="env-pressure">—</span>
+
+              <div class="env-pod">
+                <div class="env-pod-header">
+                  <span class="env-pod-label">Indicated Airspeed</span>
+                  <span class="env-pod-tag">IAS</span>
+                </div>
+                <div class="env-pod-hero">
+                  <span class="env-hero-val mono" id="env-airspeed">— m/s</span>
+                </div>
+                <div class="env-pod-sub">
+                  <span class="env-sub-val" id="env-airspeed-kts">— kts</span>
+                  <span class="env-micro-badge" id="env-mach-badge">M 0.00</span>
+                </div>
               </div>
-              <div class="env-row"><span class="k">Wind (total)</span><span class="v" id="env-wind">—</span></div>
-              <div class="env-row"><span class="k">Vertical Acceleration</span><span class="v" id="env-vac">—</span>
+
+              <div class="env-pod">
+                <div class="env-pod-header">
+                  <span class="env-pod-label">Outside Air Temp</span>
+                  <span class="env-pod-tag">OAT</span>
+                </div>
+                <div class="env-pod-hero">
+                  <span class="env-hero-val mono" id="env-temp">— °C</span>
+                </div>
+                <div class="env-pod-sub">
+                  <span class="env-sub-val" id="env-temp-k">— K</span>
+                  <span class="env-micro-badge" id="env-isa-delta">ΔISA 0.0°</span>
+                </div>
               </div>
-              <div class="env-row"><span class="k">Gust Active</span><span class="v" id="env-gust">—</span></div>
+
+              <div class="env-pod">
+                <div class="env-pod-header">
+                  <span class="env-pod-label">Static Pressure</span>
+                  <span class="env-pod-tag">BARO</span>
+                </div>
+                <div class="env-pod-hero">
+                  <span class="env-hero-val mono" id="env-pressure">— hPa</span>
+                </div>
+                <div class="env-pod-sub">
+                  <span class="env-sub-val" id="env-density-val">ρ: — kg/m³</span>
+                  <span class="env-micro-badge" id="env-rho-ratio">100% ISA</span>
+                </div>
+              </div>
+
+              <div class="env-pod">
+                <div class="env-pod-header">
+                  <span class="env-pod-label">Wind Disturbance</span>
+                  <span class="env-pod-tag">VECTOR</span>
+                </div>
+                <div class="env-pod-hero">
+                  <span class="env-hero-val mono" id="env-wind">— m/s</span>
+                </div>
+                <div class="env-pod-sub">
+                  <span class="env-sub-val" id="env-wind-type">Total Disturbance</span>
+                  <span class="env-micro-badge opt" id="env-gust">QUIESCENT</span>
+                </div>
+              </div>
+
+              <div class="env-pod">
+                <div class="env-pod-header">
+                  <span class="env-pod-label">Vertical Acceleration</span>
+                  <span class="env-pod-tag">DYNAMICS</span>
+                </div>
+                <div class="env-pod-hero">
+                  <span class="env-hero-val mono" id="env-vac">— m/s²</span>
+                </div>
+                <div class="env-pod-sub">
+                  <span class="env-sub-val" id="env-gload-val">1.00 G</span>
+                  <span class="env-micro-badge opt" id="env-gload-badge">STABLE</span>
+                </div>
+              </div>
             </div>
           </div>
 
           <div class="card env-info-card">
             <div class="card-header">
-              <h2>Flight Regime & Airspace</h2>
-              <span class="card-tag">AERODYNAMICS</span>
+              <div class="env-hdr-left">
+                <h2>Flight Regime & Airspace</h2>
+                <span class="env-status-chip opt" id="env-regime-chip">CRUISE</span>
+              </div>
+              <span class="card-tag">AERODYNAMICS & FMS</span>
             </div>
             <div class="env-metrics-grid">
               <div class="env-stat-box">
-                <span class="stat-label">Barometric Ref</span>
-                <span class="stat-val">Standard 1013 hPa</span>
+                <div class="env-box-top">
+                  <span class="stat-label">Barometric Datum</span>
+                  <span class="env-fms-pill opt">QNH 1013.25</span>
+                </div>
+                <span class="stat-val" id="env-baro-datum">Standard 1013.25 hPa</span>
+                <span class="env-stat-sub">Pressure Altitude Reference · ISA Calibrated</span>
               </div>
+
               <div class="env-stat-box">
-                <span class="stat-label">Turbulence Class</span>
-                <span class="stat-val">Atmospheric Disturbance</span>
+                <div class="env-box-top">
+                  <span class="stat-label">Turbulence Class</span>
+                  <span class="env-fms-pill opt" id="env-turb-pill">SMOOTH AIR</span>
+                </div>
+                <span class="stat-val" id="env-turb-val">Class 1 · Laminar Airflow</span>
+                <span class="env-stat-sub" id="env-turb-detail">Vertical Variance &lt; 0.5 m/s · Stable Air mass</span>
               </div>
+
               <div class="env-stat-box">
-                <span class="stat-label">Twin Correction</span>
+                <div class="env-box-top">
+                  <span class="stat-label">Twin Correction</span>
+                  <span class="env-fms-pill opt">ACTIVE SYNC</span>
+                </div>
                 <span class="stat-val">Dynamic Altitude Compensation</span>
+                <span class="env-stat-sub" id="env-twin-comp">Air Density &amp; Sound Speed Calibrated (336 m/s)</span>
               </div>
+
               <div class="env-stat-box">
-                <span class="stat-label">Sensor Drift</span>
+                <div class="env-box-top">
+                  <span class="stat-label">Sensor Drift Check</span>
+                  <span class="env-fms-pill opt">100% CONF</span>
+                </div>
                 <span class="stat-val">Zero Corrected</span>
+                <span class="env-stat-sub" id="env-pitot-drift">Pitot-Static Dual Cross-Check Verified</span>
               </div>
             </div>
           </div>
@@ -1284,22 +1376,21 @@
           <div class="section-title-wrap">
             <div class="title-with-badge">
               <h2>GARUD-DT Alert Operations & AI Diagnostics</h2>
-              <span class="badge badge-danger" id="badge-critical-alerts">1 CRITICAL</span>
-              <span class="badge badge-warning" id="badge-warning-alerts">1 WARNING</span>
-              <span class="badge badge-accent">CHAIN: ANOMALY → AI → ACTION</span>
+              <span class="alert-hero-chip crit" id="badge-critical-alerts">1 CRITICAL</span>
+              <span class="alert-hero-chip warn" id="badge-warning-alerts" style="display:none;">0 WARNING</span>
+              <span class="alert-hero-chip chain">CHAIN: ANOMALY → AI → ACTION</span>
             </div>
-            <span class="section-subtitle">Real-time engine threshold detection, digital twin physics assessment, and
-              closed-loop corrective actions</span>
+            <span class="section-subtitle">Real-time engine threshold detection, digital twin physics assessment, and closed-loop corrective actions</span>
           </div>
           <div class="alerts-actions-header">
-            <button id="btn-ack-all-alerts" class="btn btn-secondary btn-sm">
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <button id="btn-ack-all-alerts" class="btn-ops-action">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
                 <polyline points="20 6 9 17 4 12"></polyline>
               </svg>
               <span>Acknowledge All</span>
             </button>
-            <button id="btn-clear-resolved-alerts" class="btn btn-secondary btn-sm">
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <button id="btn-clear-resolved-alerts" class="btn-ops-action secondary">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                 <polyline points="3 6 5 6 21 6"></polyline>
                 <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
               </svg>
@@ -1311,24 +1402,44 @@
         <!-- 1. ALERT SUMMARY (4 TOP CARDS) -->
         <div class="alerts-summary-grid">
           <div class="summary-kpi-card alert-kpi-crit">
-            <div class="kpi-label">Critical Alerts</div>
+            <div class="kpi-header-row">
+              <span class="kpi-label">Critical Alerts</span>
+              <span class="kpi-icon-badge crit">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+              </span>
+            </div>
             <div class="kpi-val text-danger" id="alert-kpi-critical">1</div>
-            <div class="kpi-sub">Immediate Action Required</div>
+            <div class="kpi-sub"><span class="kpi-sub-pill crit">IMMEDIATE ACTION</span></div>
           </div>
           <div class="summary-kpi-card alert-kpi-warn">
-            <div class="kpi-label">Warnings</div>
-            <div class="kpi-val text-warning" id="alert-kpi-warning">1</div>
-            <div class="kpi-sub">Active System Monitoring</div>
+            <div class="kpi-header-row">
+              <span class="kpi-label">Active Warnings</span>
+              <span class="kpi-icon-badge warn">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+              </span>
+            </div>
+            <div class="kpi-val text-warning" id="alert-kpi-warning">0</div>
+            <div class="kpi-sub"><span class="kpi-sub-pill warn">SYSTEM MONITORING</span></div>
           </div>
           <div class="summary-kpi-card alert-kpi-resolved">
-            <div class="kpi-label">Resolved</div>
-            <div class="kpi-val text-green" id="alert-kpi-resolved">1</div>
-            <div class="kpi-sub">Cleared Conditions Today</div>
+            <div class="kpi-header-row">
+              <span class="kpi-label">Resolved</span>
+              <span class="kpi-icon-badge resolved">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+              </span>
+            </div>
+            <div class="kpi-val text-green" id="alert-kpi-resolved">8</div>
+            <div class="kpi-sub"><span class="kpi-sub-pill resolved">CLEARED CONDITIONS</span></div>
           </div>
           <div class="summary-kpi-card alert-kpi-total">
-            <div class="kpi-label">Total Alerts</div>
-            <div class="kpi-val text-cyan" id="alert-kpi-total">3</div>
-            <div class="kpi-sub">Sortie Events Logged</div>
+            <div class="kpi-header-row">
+              <span class="kpi-label">Total Events</span>
+              <span class="kpi-icon-badge total">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+              </span>
+            </div>
+            <div class="kpi-val text-cyan" id="alert-kpi-total">9</div>
+            <div class="kpi-sub"><span class="kpi-sub-pill total">SORTIE LOGGED</span></div>
           </div>
         </div>
 
