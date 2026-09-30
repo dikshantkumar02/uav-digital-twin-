@@ -1,21 +1,24 @@
 /**
  * Runtime Deployment Configuration for UAV Digital Twin Frontend
  * 
- * Local Development:
- *   Leave values empty or set to "http://localhost:8000".
- *   Defaults automatically to same-origin / relative paths.
- * 
- * Production Deployment (Netlify -> Render):
- *   Set BACKEND_API_URL to your Render web service URL:
- *     window.BACKEND_API_URL = "https://your-backend.onrender.com";
- *     window.BACKEND_WS_URL  = "wss://your-backend.onrender.com";
+ * Auto-detects local vs. cloud environment:
+ * - Localhost / 127.0.0.1: Connects directly to local backend (same-origin / relative paths)
+ * - Netlify / Cloud: Automatically routes to deployed Render backend
  * 
  * URL Override:
- *   You can also test immediately by opening your Netlify URL with a query parameter:
- *     https://your-site.netlify.app/?backend=https://your-backend.onrender.com
+ *   Append ?backend=https://your-custom-backend.onrender.com to override at runtime.
  */
-window.BACKEND_API_URL = window.BACKEND_API_URL || "";
-window.BACKEND_WS_URL = window.BACKEND_WS_URL || "";
+
+const isLocalhost = 
+  window.location.hostname === "localhost" || 
+  window.location.hostname === "127.0.0.1" || 
+  window.location.hostname === "";
+
+const PRODUCTION_RENDER_BACKEND = "https://uav-digital-twin-vzgs.onrender.com";
+const PRODUCTION_RENDER_WS = "wss://uav-digital-twin-vzgs.onrender.com";
+
+window.BACKEND_API_URL = window.BACKEND_API_URL || (isLocalhost ? "" : PRODUCTION_RENDER_BACKEND);
+window.BACKEND_WS_URL = window.BACKEND_WS_URL || (isLocalhost ? "" : PRODUCTION_RENDER_WS);
 
 try {
   const params = new URLSearchParams(window.location.search);
