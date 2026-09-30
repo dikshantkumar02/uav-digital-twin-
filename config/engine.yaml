@@ -99,7 +99,7 @@ engine:
 
   # Degradation model
   degradation:
-    base_wear_per_hour: 1.0e-5
+    base_wear_per_hour: 0.0005 # Calibrated for Rotax 914 2000h TBO (1.0 / 2000h)
     wear_temp_factor_per_c: 2.0e-6
     wear_rpm_factor_per_rpm: 1.0e-9
     max_wear: 1.0

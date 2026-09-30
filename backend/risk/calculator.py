@@ -189,14 +189,18 @@ _MINIMAL_HEALTH = HealthIndex(
 )
 _MINIMAL_RUL = RulEstimate(
     time_s=0.0,
-    tte_hours_central=50_000.0,
-    tte_hours_lower=40_000.0,
-    tte_hours_upper=60_000.0,
-    wear_rate_per_hour=1e-5,
+    tte_hours_central=1900.0,
+    tte_hours_lower=1850.0,
+    tte_hours_upper=1950.0,
+    wear_rate_per_hour=0.0005,
     confidence=1.0,
     status=RulStatus.RUL_OK,
     trend=RulTrend.INSUFFICIENT_DATA,
     model_status=RulModelStatus.CLOSED_FORM,
+    remaining_hours=1900.0,
+    remaining_cycles=1615,
+    health_index=95.0,
+    uncertainty_hours=50.0,
 )
 
 

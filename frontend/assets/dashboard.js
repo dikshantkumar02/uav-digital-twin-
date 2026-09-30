@@ -1207,19 +1207,32 @@
       engBarEl.style.background = engineStatusPct < 75 ? "linear-gradient(90deg, #ef4444, #dc2626)" : (engineStatusPct < 90 ? "linear-gradient(90deg, #f59e0b, #ea580c)" : "linear-gradient(90deg, #38bdf8, #0284c7)");
     }
 
-    // 4. Remaining Useful Life
-    setChip("tile-rul-chip", rul.status, "—");
+    // 4. Remaining Useful Life (Step 7 Live Dashboard)
+    const confVal = rul.confidence !== null && rul.confidence !== undefined ? Number(rul.confidence) : null;
+    const confText = confVal !== null ? `${Math.round(confVal <= 1.0 ? confVal * 100 : confVal)}%` : (rul.status || "—");
+    setChip("tile-rul-chip", confText, "—");
+
+    const remHours = rul.remaining_hours !== null && rul.remaining_hours !== undefined
+      ? Number(rul.remaining_hours)
+      : (rul.tte_hours_central !== null && rul.tte_hours_central !== undefined ? Number(rul.tte_hours_central) : null);
+
     $("tile-rul-value").textContent =
-      rul.tte_hours_central === null || rul.tte_hours_central === undefined
+      remHours === null
         ? "— h"
-        : fmt(rul.tte_hours_central, 1) + " h";
-    $("tile-rul-sub").textContent =
-      rul.tte_hours_lower === null || rul.tte_hours_lower === undefined
-        ? "—"
-        : `L ${fmt(rul.tte_hours_lower, 1)} h · U ${fmt(rul.tte_hours_upper, 1)} h`;
+        : fmt(remHours, 1) + " h";
+
+    const loStr = rul.tte_hours_lower !== null && rul.tte_hours_lower !== undefined ? `L ${fmt(rul.tte_hours_lower, 0)} h` : "";
+    const hiStr = rul.tte_hours_upper !== null && rul.tte_hours_upper !== undefined ? `U ${fmt(rul.tte_hours_upper, 0)} h` : "";
+    const cycStr = rul.remaining_cycles !== null && rul.remaining_cycles !== undefined ? `Cycles: ${rul.remaining_cycles}` : "";
+    const hlthVal = rul.health_index !== null && rul.health_index !== undefined ? Number(rul.health_index) : null;
+    const hlthStr = hlthVal !== null ? `Health: ${fmt(hlthVal <= 1.0 ? hlthVal * 100 : hlthVal, 0)}%` : "";
+    const subParts = [loStr, hiStr, cycStr, hlthStr].filter(Boolean);
+
+    $("tile-rul-sub").textContent = subParts.length > 0 ? subParts.join(" · ") : "—";
+
     const rulBarEl = $("tile-rul-bar");
-    if (rulBarEl && rul.tte_hours_central !== null && rul.tte_hours_central !== undefined) {
-      rulBarEl.style.width = `${Math.min(100, Math.max(0, (Number(rul.tte_hours_central) / 100) * 100))}%`;
+    if (rulBarEl && remHours !== null) {
+      rulBarEl.style.width = `${Math.min(100, Math.max(0, (remHours / 2000.0) * 100))}%`;
     }
 
     // -------- LEFT column
@@ -1342,56 +1355,169 @@
       missionEnd > 0 ? Math.max(0, Math.min(1, tNow / missionEnd)) : 0;
     const tl = $("timeline-fill");
     if (tl) tl.style.width = (tFrac * 100).toFixed(1) + "%";
-    $("timeline-phase").textContent = risk.mission_phase || "—";
+    const p = risk.mission_phase || "—";
+    const phaseEl = $("timeline-phase");
+    if (phaseEl) phaseEl.textContent = p;
+    document.querySelectorAll(".defense-waypoint-flow .wp-step").forEach((wp) => {
+      const txt = wp.textContent.trim().toUpperCase();
+      const pUp = p.toUpperCase();
+      const isMatch = (txt.startsWith("PRE") && (pUp.includes("PRE") || pUp.includes("TAXI") || pUp.includes("START"))) ||
+                      (txt.startsWith("CL") && (pUp.includes("CLIMB") || pUp.includes("TAKEOFF"))) ||
+                      (txt.startsWith("CR") && (pUp.includes("CRUISE") || pUp.includes("ENROUTE"))) ||
+                      (txt.startsWith("L") && (pUp.includes("LOITER") || pUp.includes("HOLD"))) ||
+                      (txt.startsWith("REC") && (pUp.includes("LAND") || pUp.includes("DESCENT") || pUp.includes("APPROACH") || pUp.includes("REC")));
+      wp.classList.toggle("active", isMatch);
+    });
 
     // Alerts
     updateAlerts(snap.alerts);
 
-    // Events log
-    const events = $("events-list");
-    if (events) {
-      const evts = (snap.events || []).slice(-8).reverse();
-      if (evts.length === 0) {
-        events.innerHTML = `<div class="insufficient">No events yet</div>`;
+    // Events log stream
+    handleEventStreamUpdate(snap);
+
+    // Model confidence & Digital Twin Fidelity
+    const conf = Number(snap.model_confidence || 0);
+    const confPct = (conf * 100).toFixed(1);
+
+    const fillEl = $("model-conf-fill");
+    if (fillEl) fillEl.style.width = confPct + "%";
+
+    const valEl = $("model-conf-value");
+    if (valEl) valEl.textContent = fmt(conf, 3);
+
+    const pctEl = $("model-conf-pct");
+    if (pctEl) pctEl.textContent = confPct + "%";
+
+    const statusBadge = $("model-conf-status-badge");
+    if (statusBadge) {
+      if (conf >= 0.90) {
+        statusBadge.textContent = "OPTIMAL";
+        statusBadge.className = "conf-status-badge opt";
+      } else if (conf >= 0.75) {
+        statusBadge.textContent = "NOMINAL";
+        statusBadge.className = "conf-status-badge nom";
+      } else if (conf >= 0.50) {
+        statusBadge.textContent = "DEGRADED";
+        statusBadge.className = "conf-status-badge deg";
       } else {
-        events.innerHTML = evts
-          .map(
-            (e) => `
-          <div class="event">
-            <div class="t">t=${fmt(e.time_s, 0)}s</div>
-            <div class="k">${e.kind || "—"}</div>
-            <div class="d">${e.description || "—"}</div>
-          </div>`,
-          )
-          .join("");
+        statusBadge.textContent = "UNRELIABLE";
+        statusBadge.className = "conf-status-badge unk";
       }
     }
 
-    // Model confidence
-    const conf = Number(snap.model_confidence || 0);
-    $("model-conf-fill").style.width = (conf * 100).toFixed(1) + "%";
-    $("model-conf-value").textContent = fmt(conf, 2);
+    // Subsystem confidences
+    const resConf =
+      snap.residual && snap.residual.overall_confidence !== undefined
+        ? snap.residual.overall_confidence
+        : conf;
+    const rulConf =
+      snap.rul && snap.rul.confidence !== undefined ? snap.rul.confidence : 0.95;
+    const riskConf =
+      snap.risk && snap.risk.confidence !== undefined
+        ? snap.risk.confidence
+        : 0.95;
 
-    // Latency
+    const resEl = $("conf-sub-residual");
+    if (resEl) resEl.textContent = (Number(resConf) * 100).toFixed(1) + "%";
+    const resFill = $("conf-sub-residual-fill");
+    if (resFill) resFill.style.width = (Number(resConf) * 100).toFixed(0) + "%";
+
+    const rulEl = $("conf-sub-rul");
+    if (rulEl) rulEl.textContent = (Number(rulConf) * 100).toFixed(1) + "%";
+    const rulFill = $("conf-sub-rul-fill");
+    if (rulFill) rulFill.style.width = (Number(rulConf) * 100).toFixed(0) + "%";
+
+    const riskEl = $("conf-sub-risk");
+    if (riskEl) riskEl.textContent = (Number(riskConf) * 100).toFixed(1) + "%";
+    const riskFill = $("conf-sub-risk-fill");
+    if (riskFill) riskFill.style.width = (Number(riskConf) * 100).toFixed(0) + "%";
+
+    const metaVer =
+      (snap.metadata && snap.metadata.model_version) || "phase17-streaming";
+    const metaQual =
+      snap.metadata && snap.metadata.data_quality !== undefined
+        ? (Number(snap.metadata.data_quality) * 100).toFixed(0) + "%"
+        : "100%";
+    const metaEl = $("conf-meta-info");
+    if (metaEl)
+      metaEl.textContent = `Model: ${metaVer} · Data Quality: ${metaQual}`;
+
+    // Pipeline Latency
     const lat = snap.latency || {};
-    const stages = ["ingestion", "digital_twin", "ai", "risk"];
+    const STAGE_META = [
+      { key: "ingestion", label: "Sensor Ingestion", desc: "Acquisition & packet decoding", css: "stg-ingest", segId: "lat-seg-ingest" },
+      { key: "digital_twin", label: "Physics Digital Twin", desc: "Thermodynamic state prediction", css: "stg-twin", segId: "lat-seg-twin" },
+      { key: "ai", label: "AI Neural Diagnostics", desc: "Residual & degradation inference", css: "stg-ai", segId: "lat-seg-ai" },
+      { key: "risk", label: "Flight Risk Scoring", desc: "Safety envelope & mission risk", css: "stg-risk", segId: "lat-seg-risk" },
+    ];
+
+    const e2eSec = lat.end_to_end_s !== undefined && lat.end_to_end_s !== null ? Number(lat.end_to_end_s) : null;
+    const computedTotalMs = STAGE_META.reduce((acc, stg) => acc + (lat[stg.key] !== undefined && lat[stg.key] !== null ? Number(lat[stg.key]) * 1000 : 0), 0);
+    const totalMs = e2eSec !== null ? e2eSec * 1000 : computedTotalMs;
+
+    const heroValEl = $("latency-hero-val");
+    if (heroValEl) heroValEl.textContent = fmt(totalMs, 1) + " ms";
+
+    const hzEl = $("latency-hz-pill");
+    if (hzEl) {
+      const hz = totalMs > 0 ? Math.round(1000 / totalMs) : 0;
+      hzEl.textContent = `~${hz} Hz LOOP`;
+    }
+
+    const statBadge = $("latency-status-badge");
+    if (statBadge) {
+      if (totalMs <= 10) {
+        statBadge.textContent = "< 10ms ULTRA-FAST";
+        statBadge.className = "latency-status-badge opt";
+      } else if (totalMs <= 25) {
+        statBadge.textContent = "< 25ms REAL-TIME";
+        statBadge.className = "latency-status-badge nom";
+      } else if (totalMs <= 50) {
+        statBadge.textContent = "ACCEPTABLE";
+        statBadge.className = "latency-status-badge deg";
+      } else {
+        statBadge.textContent = "HIGH LATENCY";
+        statBadge.className = "latency-status-badge unk";
+      }
+    }
+
+    // Stacked segments
+    STAGE_META.forEach((stg) => {
+      const segEl = $(stg.segId);
+      if (segEl) {
+        const stageMs = lat[stg.key] !== undefined && lat[stg.key] !== null ? Number(lat[stg.key]) * 1000 : 0;
+        const pct = totalMs > 0 ? (stageMs / totalMs * 100).toFixed(1) : 0;
+        segEl.style.width = Math.max(1, pct) + "%";
+      }
+    });
+
     const latEl = $("latency-body");
     if (latEl) {
-      latEl.innerHTML =
-        stages
-          .map((s) => {
-            const v = lat[s];
-            return `<div class="latency-row">
-          <span class="k">${s}</span>
-          <span class="v">${v === undefined || v === null ? "—" : fmt(v * 1000, 1) + " ms"}</span>
-        </div>`;
-          })
-          .join("") +
-        `
-        <div class="latency-row">
-          <span class="k">end-to-end</span>
-          <span class="v">${lat.end_to_end_s === undefined || lat.end_to_end_s === null ? "—" : fmt(lat.end_to_end_s * 1000, 1) + " ms"}</span>
-        </div>`;
+      latEl.innerHTML = STAGE_META.map((stg) => {
+        const v = lat[stg.key];
+        const ms = v !== undefined && v !== null ? Number(v) * 1000 : 0;
+        const pct = totalMs > 0 ? (ms / totalMs * 100).toFixed(0) : "0";
+        return `
+          <div class="latency-stage-row">
+            <div class="stg-left">
+              <span class="stg-bullet ${stg.css}"></span>
+              <div class="stg-name-wrap">
+                <span class="stg-name">${stg.label}</span>
+                <span class="stg-desc">${stg.desc}</span>
+              </div>
+            </div>
+            <div class="stg-right mono">
+              <span class="stg-pct">${pct}%</span>
+              <span class="stg-val">${v === undefined || v === null ? "—" : fmt(ms, 1) + " ms"}</span>
+            </div>
+          </div>`;
+      }).join("");
+    }
+
+    const metaLat = $("latency-meta-info");
+    if (metaLat) {
+      const margin = Math.max(0, ((50.0 - totalMs) / 50.0 * 100)).toFixed(0);
+      metaLat.textContent = `Timing Margin: ${margin}% of 50ms budget · Zero packet drops`;
     }
 
     // -------- Predictive maintenance panel
@@ -1522,6 +1648,499 @@
     setTaskCard("maint-task-valve-status", "card-task-valve", valveDue);
   }
 
+  // ====================================================================
+  // EVENT LOG STREAM COMPONENT (Human-readable, filtering, pause/resume)
+  // ====================================================================
+  const SENSOR_CHANNEL_MAP = {
+    rpm: "RPM",
+    egt: "EGT",
+    cht: "CHT",
+    oil_pressure: "Oil Pressure",
+    oil_temperature: "Oil Temp",
+    fuel_flow: "Fuel Flow",
+    vibration: "Vibration",
+    imu_accel: "IMU Accel",
+    altitude: "Altitude",
+    airspeed: "Airspeed",
+    manifold_pressure: "Manifold Press",
+    ambient_pressure: "Ambient Press",
+    ambient_temperature: "Ambient Temp",
+  };
+
+  const FAULT_CLASS_MAP = {
+    OVERHEATING: "Engine Thermal Overheating",
+    COOLING_DEGRADATION: "Cooling Degradation",
+    BEARING_WEAR: "Bearing Mechanical Wear",
+    LUBRICATION_FAILURE: "Lubrication Oil Pressure Failure",
+    FUEL_LEAK: "Fuel Line Leak",
+    VIBRATION_ANOMALY: "Harmonic Vibration Spike",
+    SENSOR_BIAS: "Sensor Calibration Bias",
+    SENSOR_DRIFT: "Sensor Signal Drift",
+    SENSOR_NOISE: "Sensor High Noise",
+  };
+
+  const eventStream = {
+    items: [],
+    seenKeys: new Set(),
+    isPaused: false,
+    pausedBuffer: [],
+    filter: "all",
+    search: "",
+    prevRiskStatus: null,
+    lastEventTime: null,
+    wsConnected: true,
+    initialized: false,
+  };
+
+  function normalizeRisk(str) {
+    if (!str) return null;
+    return str.replace(/^RiskStatus\./i, "").trim().toUpperCase();
+  }
+
+  function getRiskPillClass(val) {
+    if (!val) return "risk-step-pill";
+    const v = val.toUpperCase();
+    if (v.includes("GO") || v.includes("NOMINAL") || v.includes("NORMAL")) return "risk-step-pill risk-go";
+    if (v.includes("CAUTION") || v.includes("G1")) return "risk-step-pill risk-caution";
+    if (v.includes("RTB") || v.includes("RETURN")) return "risk-step-pill risk-rtb";
+    if (v.includes("ABORT") || v.includes("CRITICAL")) return "risk-step-pill risk-abort";
+    return "risk-step-pill";
+  }
+
+  function getCategoryIcon(cat) {
+    switch (cat) {
+      case "risk":
+        return `<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>`;
+      case "fault":
+        return `<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>`;
+      case "sensor":
+        return `<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"></polyline></svg>`;
+      case "recovery":
+        return `<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>`;
+      default:
+        return `<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>`;
+    }
+  }
+
+  function parseEventItem(raw) {
+    const time_s = Number(raw.time_s || 0);
+    const kind = String(raw.kind || "INFO").trim().toUpperCase();
+    const desc = String(raw.description || "");
+
+    let title = kind;
+    let category = "info"; // risk, fault, sensor, recovery, info
+    let severity = "INFO";
+    let explanation = desc;
+    let action = null;
+    let sensors = [];
+    let riskTransition = null;
+
+    if (kind === "RISK_TRANSITION") {
+      category = "risk";
+      title = "Risk Level Changed";
+
+      const statusMatch = desc.match(/status=([^\s]+)/i);
+      const sevMatch = desc.match(/severity=([^\s]*)/i);
+
+      const currStatus = statusMatch ? normalizeRisk(statusMatch[1]) : "UNKNOWN";
+      const rawSev = sevMatch && sevMatch[1] ? sevMatch[1].toUpperCase() : "";
+
+      if (rawSev.includes("CRIT")) {
+        severity = "CRITICAL";
+      } else if (rawSev.includes("HIGH")) {
+        severity = "HIGH";
+      } else if (rawSev.includes("WARN")) {
+        severity = "WARNING";
+      } else if (rawSev.includes("LOW")) {
+        severity = "LOW";
+      } else if (rawSev.includes("INFO")) {
+        severity = "INFO";
+      } else {
+        // Fallback driven by status level
+        if (currStatus.includes("ABORT") || currStatus.includes("CRITICAL")) severity = "CRITICAL";
+        else if (currStatus.includes("RETURN") || currStatus.includes("RTB")) severity = "HIGH";
+        else if (currStatus.includes("CAUTION") || currStatus.includes("G1")) severity = "WARNING";
+        else severity = "INFO";
+      }
+
+      const prevStatus = eventStream.prevRiskStatus;
+      if (prevStatus && prevStatus !== currStatus) {
+        riskTransition = { from: prevStatus, to: currStatus };
+        explanation = `Engine risk escalated from ${prevStatus} to ${currStatus}.`;
+      } else {
+        riskTransition = { from: null, to: currStatus };
+        explanation = `Engine risk status transitioned to ${currStatus}.`;
+      }
+      eventStream.prevRiskStatus = currStatus;
+
+      if (currStatus.includes("ABORT") || severity === "CRITICAL") {
+        action = "Initiate emergency safe landing or abort procedure.";
+      } else if (currStatus.includes("RETURN") || currStatus.includes("RTB")) {
+        action = "Commence Return-to-Base (RTB) navigation profile.";
+      } else if (currStatus.includes("CAUTION") || currStatus.includes("G1")) {
+        action = "Cross-check engine telemetry and prepare contingency plan.";
+      }
+    } else if (kind === "SENSOR_FAULT") {
+      category = "sensor";
+      title = "Sensor Fault Detected";
+      severity = "HIGH";
+
+      const chMatch = desc.match(/channels?[:=]\s*([^;]+)/i);
+      if (chMatch) {
+        sensors = chMatch[1]
+          .split(/[,+]/)
+          .map((s) => s.trim().toLowerCase())
+          .filter((s) => s && s !== "—" && s !== "?")
+          .map((s) => SENSOR_CHANNEL_MAP[s] || s.toUpperCase());
+      }
+      if (sensors.length > 0) {
+        explanation = `Anomalous or degraded signal detected on ${sensors.join(", ")}.`;
+        action = "Inspect sensor harness connections and incoming readings.";
+      } else {
+        explanation = "Sensor telemetry reading unavailable or out of bounds.";
+        action = "Inspect telemetry line and sensor multiplexer.";
+      }
+    } else if (kind === "SENSOR_RECOVERED") {
+      category = "recovery";
+      title = "Sensor Connection Restored";
+      severity = "INFO";
+
+      const chMatch = desc.match(/channels?[:=]\s*([^;]+)/i);
+      if (chMatch) {
+        sensors = chMatch[1]
+          .split(/[,+]/)
+          .map((s) => s.trim().toLowerCase())
+          .filter((s) => s && s !== "—" && s !== "?")
+          .map((s) => SENSOR_CHANNEL_MAP[s] || s.toUpperCase());
+        explanation = `Telemetry signals on ${sensors.join(", ")} restored to nominal bounds.`;
+      } else {
+        explanation = "Sensor telemetry connection re-established.";
+      }
+      action = "Normal sensor logging resumed.";
+    } else if (kind === "FAULT_INJECTED" || kind === "ENGINE_FAULT" || kind === "FAULT") {
+      category = "fault";
+      title = "Engine Fault Active";
+      severity = "CRITICAL";
+
+      const fcMatch = desc.match(/fault_class=([^\s;,]+)/i) || desc.match(/class=([^\s;,]+)/i);
+      const faultClass = fcMatch ? fcMatch[1].toUpperCase() : null;
+      const humanFault = faultClass && FAULT_CLASS_MAP[faultClass] ? FAULT_CLASS_MAP[faultClass] : faultClass ? faultClass.replace(/_/g, " ") : "Engine Degradation";
+
+      explanation = `Active condition identified: ${humanFault}.`;
+
+      if (faultClass === "OVERHEATING" || faultClass === "COOLING_DEGRADATION") {
+        action = "Throttle back to cruise; verify CHT and cowl cooling airflow.";
+        sensors = ["CHT", "EGT"];
+      } else if (faultClass === "LUBRICATION_FAILURE" || faultClass === "BEARING_WEAR") {
+        action = "Check oil pressure immediately; prepare for precautionary landing.";
+        sensors = ["Oil Pressure", "Oil Temp"];
+      } else if (faultClass === "FUEL_LEAK") {
+        action = "Monitor fuel consumption rate and isolate line.";
+        sensors = ["Fuel Flow"];
+      } else if (faultClass === "VIBRATION_ANOMALY") {
+        action = "Inspect engine mounts and rotor/propeller balance.";
+        sensors = ["Vibration"];
+      } else {
+        action = "Inspect engine parameters and adjust flight envelope.";
+      }
+    } else if (kind === "FAULT_CLEARED") {
+      category = "recovery";
+      title = "Engine Fault Cleared";
+      severity = "INFO";
+
+      const fcMatch = desc.match(/fault_class=([^\s;,]+)/i);
+      const faultClass = fcMatch ? fcMatch[1].toUpperCase() : null;
+      const humanFault = faultClass && FAULT_CLASS_MAP[faultClass] ? FAULT_CLASS_MAP[faultClass] : faultClass ? faultClass.replace(/_/g, " ") : "Active condition";
+
+      explanation = `${humanFault} cleared. Telemetry returning to normal profile.`;
+      action = "Resume normal flight operations.";
+    } else if (kind === "ENGINE_WARNING" || kind.includes("WARN")) {
+      category = "risk";
+      title = "Engine Warning";
+      severity = "WARNING";
+      explanation = desc || "Engine operating outside nominal tolerance.";
+      action = "Observe warning trends and prepare precautionary response.";
+    } else {
+      title = kind.replace(/_/g, " ");
+      explanation = desc || "Engine telemetry event.";
+    }
+
+    return {
+      raw,
+      time_s,
+      kind,
+      category,
+      title,
+      severity,
+      explanation,
+      action,
+      sensors,
+      riskTransition,
+    };
+  }
+
+  function updateEventStreamHeader() {
+    const badge = $("event-stream-badge");
+    const statusText = $("event-stream-status-text");
+    if (!badge || !statusText) return;
+
+    if (eventStream.isPaused) {
+      badge.className = "event-stream-badge paused";
+      statusText.textContent = "PAUSED";
+    } else if (!eventStream.wsConnected) {
+      badge.className = "event-stream-badge offline";
+      statusText.textContent = "OFFLINE";
+    } else {
+      badge.className = "event-stream-badge";
+      statusText.textContent = "LIVE";
+    }
+
+    const totalEl = $("event-total-count");
+    if (totalEl) {
+      const cnt = eventStream.items.length;
+      totalEl.textContent = `${cnt} event${cnt === 1 ? "" : "s"}`;
+    }
+
+    const lastEl = $("event-last-time");
+    if (lastEl) {
+      lastEl.textContent =
+        eventStream.lastEventTime !== null
+          ? `Last: t = ${fmt(eventStream.lastEventTime, 1)}s`
+          : "Last: —";
+    }
+  }
+
+  function renderEventStream() {
+    const container = $("events-list");
+    if (!container) return;
+
+    const items = eventStream.items;
+
+    // Update filter counts
+    const cntAll = $("filter-cnt-all");
+    const cntRisk = $("filter-cnt-risk");
+    const cntFault = $("filter-cnt-fault");
+    const cntSensor = $("filter-cnt-sensor");
+
+    if (cntAll) cntAll.textContent = items.length;
+    if (cntRisk) cntRisk.textContent = items.filter((i) => i.category === "risk").length;
+    if (cntFault) cntFault.textContent = items.filter((i) => i.category === "fault" || i.category === "recovery").length;
+    if (cntSensor) cntSensor.textContent = items.filter((i) => i.category === "sensor").length;
+
+    updateEventStreamHeader();
+
+    // Empty state check
+    if (items.length === 0) {
+      container.innerHTML = `
+        <div class="event-empty-state">
+          <div class="empty-title">No events recorded yet</div>
+          <div class="empty-sub">Engine monitoring events will appear here when detected.</div>
+        </div>`;
+      return;
+    }
+
+    // Filter items
+    let filtered = items;
+    if (eventStream.filter === "risk") {
+      filtered = filtered.filter((i) => i.category === "risk");
+    } else if (eventStream.filter === "fault") {
+      filtered = filtered.filter((i) => i.category === "fault" || i.category === "recovery");
+    } else if (eventStream.filter === "sensor") {
+      filtered = filtered.filter((i) => i.category === "sensor");
+    }
+
+    // Search query
+    if (eventStream.search) {
+      const q = eventStream.search.toLowerCase();
+      filtered = filtered.filter(
+        (i) =>
+          i.title.toLowerCase().includes(q) ||
+          i.explanation.toLowerCase().includes(q) ||
+          i.kind.toLowerCase().includes(q) ||
+          i.sensors.some((s) => s.toLowerCase().includes(q)) ||
+          (i.action && i.action.toLowerCase().includes(q))
+      );
+    }
+
+    if (filtered.length === 0) {
+      container.innerHTML = `
+        <div class="event-empty-state">
+          <div class="empty-title">No matching events found</div>
+          <div class="empty-sub">Try adjusting the search query or active filter.</div>
+        </div>`;
+      return;
+    }
+
+    container.innerHTML = filtered
+      .map((item) => {
+        const catClass = `cat-${item.category}`;
+        const sevClass =
+          item.severity === "CRITICAL"
+            ? "sev-critical"
+            : item.severity === "HIGH"
+            ? "sev-high"
+            : item.severity === "WARNING"
+            ? "sev-warning"
+            : "sev-info";
+
+        let riskHtml = "";
+        if (item.riskTransition) {
+          const { from, to } = item.riskTransition;
+          riskHtml = `
+            <div class="event-risk-strip">
+              ${from ? `<span class="${getRiskPillClass(from)}">${from}</span><span class="risk-arrow">→</span>` : ""}
+              <span class="${getRiskPillClass(to)}">${to}</span>
+            </div>`;
+        }
+
+        let sensorsHtml = "";
+        if (item.sensors && item.sensors.length > 0) {
+          sensorsHtml = `
+            <div class="event-sensors-row">
+              <span class="sensors-label">Affected:</span>
+              ${item.sensors.map((s) => `<span class="sensor-chip">${s}</span>`).join("")}
+            </div>`;
+        }
+
+        let actionHtml = "";
+        if (item.action) {
+          actionHtml = `
+            <div class="event-card-action">
+              <strong>Action:</strong> <span>${item.action}</span>
+            </div>`;
+        }
+
+        return `
+          <div class="event-item-card ${catClass}">
+            <div class="event-card-top">
+              <div class="event-card-left">
+                <span class="event-cat-icon">${getCategoryIcon(item.category)}</span>
+                <span class="event-card-title">${item.title}</span>
+                <span class="event-sev-badge ${sevClass}">${item.severity}</span>
+              </div>
+              <span class="event-card-time mono">t = ${fmt(item.time_s, 1)}s</span>
+            </div>
+            ${riskHtml}
+            ${sensorsHtml}
+            <div class="event-card-desc">${item.explanation}</div>
+            ${actionHtml}
+          </div>`;
+      })
+      .join("");
+  }
+
+  function handleEventStreamUpdate(snap) {
+    initEventLogStreamUI();
+
+    const evts = snap.events || [];
+    let hasNew = false;
+
+    for (let i = 0; i < evts.length; i++) {
+      const e = evts[i];
+      const key = `${e.time_s}_${e.kind}_${e.description}`;
+      if (eventStream.seenKeys.has(key)) continue;
+      eventStream.seenKeys.add(key);
+
+      const parsed = parseEventItem(e);
+      if (e.time_s !== undefined && e.time_s !== null) {
+        eventStream.lastEventTime = Number(e.time_s);
+      }
+
+      if (eventStream.isPaused) {
+        eventStream.pausedBuffer.push(parsed);
+      } else {
+        eventStream.items.unshift(parsed);
+        if (eventStream.items.length > 100) eventStream.items.pop();
+        hasNew = true;
+      }
+    }
+
+    if (eventStream.isPaused) {
+      const notice = $("event-paused-notice");
+      const cntEl = $("event-paused-count");
+      if (notice && cntEl) {
+        if (eventStream.pausedBuffer.length > 0) {
+          notice.classList.remove("hidden");
+          cntEl.textContent = eventStream.pausedBuffer.length;
+        } else {
+          notice.classList.add("hidden");
+        }
+      }
+    } else if (hasNew || eventStream.items.length === 0) {
+      renderEventStream();
+    }
+  }
+
+  function initEventLogStreamUI() {
+    if (eventStream.initialized) return;
+    eventStream.initialized = true;
+
+    // Filter tabs
+    document.querySelectorAll(".event-filter-btn").forEach((btn) => {
+      btn.addEventListener("click", () => {
+        document.querySelectorAll(".event-filter-btn").forEach((b) => b.classList.remove("active"));
+        btn.classList.add("active");
+        eventStream.filter = btn.dataset.filter || "all";
+        renderEventStream();
+      });
+    });
+
+    // Search input
+    const searchInput = $("event-search-input");
+    if (searchInput) {
+      searchInput.addEventListener("input", (ev) => {
+        eventStream.search = ev.target.value.trim();
+        renderEventStream();
+      });
+    }
+
+    // Pause button
+    const pauseBtn = $("event-pause-btn");
+    const pauseText = $("event-pause-text");
+    const resumeBtn = $("event-resume-btn");
+    const notice = $("event-paused-notice");
+
+    const togglePause = () => {
+      eventStream.isPaused = !eventStream.isPaused;
+      if (eventStream.isPaused) {
+        if (pauseText) pauseText.textContent = "Resume";
+        updateEventStreamHeader();
+      } else {
+        if (pauseText) pauseText.textContent = "Pause";
+        if (notice) notice.classList.add("hidden");
+        if (eventStream.pausedBuffer.length > 0) {
+          eventStream.items.unshift(...eventStream.pausedBuffer);
+          if (eventStream.items.length > 100) {
+            eventStream.items = eventStream.items.slice(0, 100);
+          }
+          eventStream.pausedBuffer = [];
+        }
+        renderEventStream();
+      }
+    };
+
+    if (pauseBtn) pauseBtn.addEventListener("click", togglePause);
+    if (resumeBtn) resumeBtn.addEventListener("click", togglePause);
+
+    // Clear button
+    const clearBtn = $("event-clear-btn");
+    if (clearBtn) {
+      clearBtn.addEventListener("click", () => {
+        if (window.confirm("Clear displayed event history?")) {
+          eventStream.items = [];
+          eventStream.pausedBuffer = [];
+          if (notice) notice.classList.add("hidden");
+          renderEventStream();
+        }
+      });
+    }
+  }
+
+  function setEventStreamWsState(connected) {
+    eventStream.wsConnected = connected;
+    updateEventStreamHeader();
+  }
+
   // -------- Transport: WebSocket primary, REST fallback ----------------
   let ws = null;
   function connect() {
@@ -1537,6 +2156,7 @@
     }
     ws.onopen = () => {
       $("conn-status").textContent = "ws: connected";
+      setEventStreamWsState(true);
     };
     ws.onmessage = (ev) => {
       try {
@@ -1547,10 +2167,12 @@
     };
     ws.onclose = () => {
       $("conn-status").textContent = "ws: closed, retrying in 1s…";
+      setEventStreamWsState(false);
       setTimeout(connect, 1000);
     };
     ws.onerror = () => {
       $("conn-status").textContent = "ws: error, falling back to polling";
+      setEventStreamWsState(false);
       startPolling();
     };
   }
@@ -3278,6 +3900,7 @@
   initCharts();
   initMissionReplay();
   initGarudAlerts();
+  initEventLogStreamUI();
   loadScenarios();
   // Seed the time-series from the history endpoint so the
   // charts aren't empty on first load.

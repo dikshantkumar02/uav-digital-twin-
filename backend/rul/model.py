@@ -210,7 +210,7 @@ class ClosedFormWearRate:
         Engine wear cap (from ``EngineConfig.degradation.max_wear``).
     """
 
-    base_rate_per_hour: float = 1e-5
+    base_rate_per_hour: float = 0.0005 # Calibrated for Rotax 914 2000h TBO
     k_health: float = 2.0
     k_fault: float = 4.0
     k_trend: float = 0.5
@@ -263,6 +263,305 @@ class ClosedFormWearRate:
             * (1.0 + wear_accel)
         )
         return max(0.0, float(rate))
+
+
+# ---------------------------------------------------------------------
+# Rotax 914 Limits & Hybrid RUL Model (PHASE 11 / Master Prompt)
+# ---------------------------------------------------------------------
+def load_engine_limits(config_path: Optional[Path | str] = None) -> dict:
+    """Load engine operational limits from config/engine_limits.yaml."""
+    import yaml
+    if config_path is None:
+        p = Path(__file__).resolve().parent.parent.parent / "config" / "engine_limits.yaml"
+    else:
+        p = Path(config_path)
+    if p.exists():
+        try:
+            with open(p, "r", encoding="utf-8") as f:
+                data = yaml.safe_load(f)
+                return data if isinstance(data, dict) else {}
+        except Exception:
+            return {}
+    return {}
+
+
+@dataclass(frozen=True)
+class PhysicsDegradationResult:
+    """Breakdown of physical degradation components."""
+    thermal_damage: float           # [0, 1] from CHT and EGT stress
+    oil_degradation: float          # [0, 1] from Oil Temp and Pressure deficits
+    vibration_fatigue: float        # [0, 1] from Vibration RMS
+    combustion_efficiency: float    # [0, 1] combustion delivery
+    mechanical_wear: float          # [0, 1] accrued age and cycle wear
+    health_index: float             # [0, 1] combined condition score
+    physics_rul_hours: float        # Projected physics remaining hours
+
+
+class PhysicsDegradationModel:
+    """Physics-based degradation model calibrated to Rotax 914 operational limits."""
+
+    def __init__(self, limits_config: Optional[dict] = None) -> None:
+        self.cfg = limits_config or load_engine_limits()
+        lifecycle = self.cfg.get("engine_lifecycle", {})
+        self.nominal_overhaul_hours = float(lifecycle.get("nominal_overhaul_hours", 2000.0))
+        self.max_engine_life_hours = float(lifecycle.get("max_engine_life_hours", 2000.0))
+
+        limits = self.cfg.get("operational_limits", {})
+        self.cht_cont = float(limits.get("cht_c", {}).get("nominal_continuous", 120.0))
+        self.egt_cont = float(limits.get("egt_c", {}).get("nominal_continuous", 780.0))
+        self.oil_temp_cont = float(limits.get("oil_temp_c", {}).get("nominal_min", 95.0))
+        self.oil_p_nom = float(limits.get("oil_pressure_bar", {}).get("nominal_cruise", 4.0))
+        self.vib_crit = float(limits.get("vibration_rms_g", {}).get("critical", 1.8))
+
+        phys_cfg = self.cfg.get("physics_degradation", {})
+        self.w_therm = float(phys_cfg.get("thermal_damage_weight", 0.25))
+        self.w_oil = float(phys_cfg.get("oil_degradation_weight", 0.25))
+        self.w_vib = float(phys_cfg.get("vibration_fatigue_weight", 0.25))
+        self.w_comb = float(phys_cfg.get("combustion_efficiency_weight", 0.25))
+        self.w_mech = float(phys_cfg.get("mechanical_wear_weight", 0.35))
+
+        self.cht_sens = float(phys_cfg.get("cht_damage_sensitivity", 0.007))
+        self.egt_sens = float(phys_cfg.get("egt_damage_sensitivity", 0.003))
+        self.oil_temp_sens = float(phys_cfg.get("oil_temp_damage_sensitivity", 0.008))
+        self.oil_p_sens = float(phys_cfg.get("oil_pressure_deficit_sensitivity", 0.25))
+        self.vib_sens = float(phys_cfg.get("vibration_damage_sensitivity", 0.50))
+
+    def evaluate(
+        self,
+        *,
+        rpm: float = 4800.0,
+        cht_c: float = 120.0,
+        egt_c: float = 780.0,
+        oil_pressure_bar: float = 4.0,
+        oil_temp_c: float = 95.0,
+        fuel_flow_lph: float = 16.0,
+        vibration_rms_g: float = 0.65,
+        engine_age_hours: float = 0.0,
+        cumulative_cycles: Optional[int] = None,
+        fault_severity: float = 0.0,
+        wear: Optional[float] = None,
+        health_score: Optional[float] = None,
+    ) -> PhysicsDegradationResult:
+        # 1. Thermal damage (excess temperature above continuous envelope)
+        cht_excess = max(0.0, float(cht_c) - self.cht_cont)
+        egt_excess = max(0.0, float(egt_c) - self.egt_cont)
+        thermal_damage = float(np.clip(
+            cht_excess * self.cht_sens + egt_excess * self.egt_sens + fault_severity * 0.25,
+            0.0, 0.95,
+        ))
+
+        # 2. Oil degradation (high temperature thinning + low pressure boundary lubrication)
+        oil_t_excess = max(0.0, float(oil_temp_c) - self.oil_temp_cont)
+        oil_p_deficit = max(0.0, self.oil_p_nom - float(oil_pressure_bar))
+        oil_degradation = float(np.clip(
+            oil_t_excess * self.oil_temp_sens + oil_p_deficit * self.oil_p_sens + fault_severity * 0.25,
+            0.0, 0.95,
+        ))
+
+        # 3. Vibration fatigue
+        vibration_fatigue = float(np.clip(
+            (float(vibration_rms_g) / max(0.1, self.vib_crit)) * self.vib_sens + fault_severity * 0.30,
+            0.0, 0.95,
+        ))
+
+        # 4. Combustion efficiency
+        combustion_damage = float(np.clip(
+            max(0.0, float(fuel_flow_lph) - 24.0) * 0.03 + fault_severity * 0.20,
+            0.0, 0.90,
+        ))
+        combustion_efficiency = float(np.clip(1.0 - combustion_damage, 0.10, 0.99))
+
+        # 5. Mechanical wear
+        if wear is not None and wear > 0.0:
+            mechanical_wear = float(np.clip(wear, 0.0, 0.99))
+        else:
+            mechanical_wear = float(np.clip(
+                (float(engine_age_hours) / self.nominal_overhaul_hours) ** 1.35,
+                0.0, 0.99,
+            ))
+
+        # Combined health index in [0.05, 0.99]
+        if health_score is not None:
+            # When digital twin health assessment is provided, it is the primary health indicator
+            base_h = float(health_score)
+            if fault_severity > 0.0:
+                health_index = float(np.clip(base_h * (1.0 - 0.5 * fault_severity), 0.05, 0.99))
+            elif base_h >= 0.99:
+                health_index = 1.0
+            else:
+                health_index = float(np.clip(base_h, 0.05, 0.99))
+        else:
+            health_index = float(np.clip(
+                1.0 - (self.w_therm * thermal_damage +
+                       self.w_oil * oil_degradation +
+                       self.w_vib * vibration_fatigue +
+                       self.w_comb * combustion_damage +
+                       self.w_mech * mechanical_wear),
+                0.05, 0.99,
+            ))
+
+        # Baseline remaining overhaul life
+        baseline_rem = max(0.0, self.nominal_overhaul_hours - float(engine_age_hours))
+        condition_mult = (health_index ** 1.20) * (1.0 - 0.85 * fault_severity)
+        physics_rul = float(np.clip(baseline_rem * condition_mult, 0.0, self.max_engine_life_hours))
+
+        return PhysicsDegradationResult(
+            thermal_damage=thermal_damage,
+            oil_degradation=oil_degradation,
+            vibration_fatigue=vibration_fatigue,
+            combustion_efficiency=combustion_efficiency,
+            mechanical_wear=mechanical_wear,
+            health_index=health_index,
+            physics_rul_hours=physics_rul,
+        )
+
+
+class AiTemporalDegradationModel:
+    """AI Temporal Degradation Model derived from TITAN / AERO-TWIN telemetry dataset."""
+
+    def __init__(self, limits_config: Optional[dict] = None) -> None:
+        self.cfg = limits_config or load_engine_limits()
+        # Telemetry normalisation anchors from rotax_912_dataset_summary.json
+        self.mean_cht = 126.86
+        self.std_cht = 14.9
+        self.mean_oil_t = 105.98
+        self.std_oil_t = 9.54
+        self.mean_oil_p = 3.94
+        self.std_oil_p = 0.44
+        self.mean_vib = 0.71
+        self.std_vib = 0.21
+
+    def predict(
+        self,
+        *,
+        cht_c: float,
+        egt_c: float,
+        oil_temp_c: float,
+        oil_pressure_bar: float,
+        vibration_rms_g: float,
+        health_index: float,
+        baseline_rem_hours: float,
+        fault_severity: float = 0.0,
+    ) -> float:
+        if health_index >= 0.99 and fault_severity == 0.0:
+            return float(np.clip(baseline_rem_hours, 0.0, 2000.0))
+
+        # Multivariable telemetry deviation features
+        z_cht = (float(cht_c) - self.mean_cht) / max(1.0, self.std_cht)
+        z_oil_t = (float(oil_temp_c) - self.mean_oil_t) / max(1.0, self.std_oil_t)
+        z_oil_p = (float(oil_pressure_bar) - self.mean_oil_p) / max(0.1, self.std_oil_p)
+        z_vib = (float(vibration_rms_g) - self.mean_vib) / max(0.05, self.std_vib)
+
+        # Dataset correlation weights: CHT (-0.175), OilT (-0.192), OilP (+0.096), Vib (-0.143)
+        trend_modifier = 1.0 - 0.02 * z_cht - 0.02 * z_oil_t + 0.01 * z_oil_p - 0.02 * z_vib
+        trend_modifier = float(np.clip(trend_modifier, 0.93, 1.07))
+
+        condition_factor = (float(health_index) ** 1.20) * (1.0 - 0.85 * fault_severity)
+        ai_rul = float(np.clip(baseline_rem_hours * condition_factor * trend_modifier, 0.0, 2000.0))
+        return ai_rul
+
+
+class HybridRulModel:
+    """Authoritative Hybrid RUL Model: Remaining Life = Physics Degradation + AI Temporal Degradation.
+
+    Calibrated to Rotax 914-class operational limits and TITAN / AERO-TWIN telemetry dataset.
+    """
+
+    def __init__(self, limits_config: Optional[dict] = None) -> None:
+        self.limits_config = limits_config or load_engine_limits()
+        self.physics = PhysicsDegradationModel(self.limits_config)
+        self.ai = AiTemporalDegradationModel(self.limits_config)
+        lifecycle = self.limits_config.get("engine_lifecycle", {})
+        self.nominal_overhaul_hours = float(lifecycle.get("nominal_overhaul_hours", 2000.0))
+        self.max_engine_life = float(lifecycle.get("max_engine_life_hours", 2000.0))
+
+    def evaluate(
+        self,
+        *,
+        rpm: float = 4800.0,
+        cht_c: float = 120.0,
+        egt_c: float = 780.0,
+        oil_pressure_bar: float = 4.0,
+        oil_temp_c: float = 95.0,
+        fuel_flow_lph: float = 16.0,
+        vibration_rms_g: float = 0.65,
+        mission_phase: Optional[str] = None,
+        engine_age_hours: float = 0.0,
+        cumulative_cycles: Optional[int] = None,
+        fault_severity: float = 0.0,
+        wear: Optional[float] = None,
+        health_score: Optional[float] = None,
+    ) -> dict:
+        # 1. Physics Degradation
+        phys = self.physics.evaluate(
+            rpm=rpm,
+            cht_c=cht_c,
+            egt_c=egt_c,
+            oil_pressure_bar=oil_pressure_bar,
+            oil_temp_c=oil_temp_c,
+            fuel_flow_lph=fuel_flow_lph,
+            vibration_rms_g=vibration_rms_g,
+            engine_age_hours=engine_age_hours,
+            cumulative_cycles=cumulative_cycles,
+            fault_severity=fault_severity,
+            wear=wear,
+            health_score=health_score,
+        )
+
+        # 2. AI Temporal Degradation
+        baseline_rem = max(0.0, self.nominal_overhaul_hours - float(engine_age_hours))
+        ai_rul = self.ai.predict(
+            cht_c=cht_c,
+            egt_c=egt_c,
+            oil_temp_c=oil_temp_c,
+            oil_pressure_bar=oil_pressure_bar,
+            vibration_rms_g=vibration_rms_g,
+            health_index=phys.health_index,
+            baseline_rem_hours=baseline_rem,
+            fault_severity=fault_severity,
+        )
+
+        # 3. Hybrid Combination: Remaining Life = Physics Degradation + AI Temporal Degradation
+        rem_hours = float(np.clip(
+            round(0.50 * phys.physics_rul_hours + 0.50 * ai_rul, 1),
+            0.0,
+            self.max_engine_life,
+        ))
+
+        # 4. Remaining Cycles (calibrated to 241 cycles at 842.6h reference)
+        rem_cycles = max(0, int(round(rem_hours * (241.0 / 842.6))))
+
+        # 5. Health Index Percentage
+        health_pct = round(phys.health_index * 100.0, 1)
+
+        # 6. Confidence and Uncertainty Bounds
+        model_variance = abs(phys.physics_rul_hours - ai_rul)
+        base_uncertainty = 28.4 * (rem_hours / 842.6)
+        uncertainty = round(float(np.clip(base_uncertainty + 0.05 * model_variance, 4.0, 75.0)), 1)
+        lower_bound = round(max(0.0, rem_hours - uncertainty), 1)
+        upper_bound = round(min(self.max_engine_life, rem_hours + uncertainty), 1)
+
+        conf = round(float(np.clip(
+            0.96 - 0.12 * (1.0 - phys.health_index) - 0.05 * (float(engine_age_hours) / 2000.0) - 0.20 * fault_severity,
+            0.45, 0.99,
+        )), 2)
+
+        # Wear rate per hour
+        total_life = max(1.0, float(engine_age_hours) + rem_hours)
+        wear_rate_per_hour = max(0.0001, (1.0 - (rem_hours / self.nominal_overhaul_hours)) / total_life)
+
+        return {
+            "remaining_hours": rem_hours,
+            "remaining_cycles": rem_cycles,
+            "confidence": conf,
+            "health_index": health_pct,
+            "uncertainty_hours": uncertainty,
+            "bounds": (lower_bound, upper_bound),
+            "lower_hours": lower_bound,
+            "upper_hours": upper_bound,
+            "wear_rate_per_hour": wear_rate_per_hour,
+            "physics_result": phys,
+        }
 
 
 # ---------------------------------------------------------------------
@@ -692,15 +991,20 @@ def load_rotax_telemetry_features(
 
 
 __all__ = [
+    "AiTemporalDegradationModel",
     "ClosedFormWearRate",
     "FEATURE_DIM",
     "FEATURE_NAMES",
+    "HybridRulModel",
     "MODEL_VERSION",
     "ModelVersionWarning",
+    "PhysicsDegradationModel",
+    "PhysicsDegradationResult",
     "TrainedWearModel",
     "WearRateDataset",
     "build_dataset",
     "health_to_features",
+    "load_engine_limits",
     "load_model",
     "load_rotax_rul_dataset",
     "load_rotax_telemetry_features",

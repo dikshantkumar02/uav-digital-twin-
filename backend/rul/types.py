@@ -180,6 +180,35 @@ class RulEstimate:
     model_status: RulModelStatus
     contributing_faults: Dict[str, float] = field(default_factory=dict)
     notes: List[str] = field(default_factory=list)
+    remaining_hours: Optional[float] = None
+    remaining_cycles: Optional[int] = None
+    health_index: Optional[float] = None
+    uncertainty_hours: Optional[float] = None
+
+    def __post_init__(self) -> None:
+        # Default missing Master Prompt fields if not explicitly passed
+        rem_h = float(self.remaining_hours if self.remaining_hours is not None else self.tte_hours_central)
+        object.__setattr__(self, "remaining_hours", rem_h)
+
+        if self.remaining_cycles is None:
+            # Calibrated cycles per remaining hour for Rotax 914
+            cycles = max(0, int(round(rem_h * 0.85)))
+            object.__setattr__(self, "remaining_cycles", cycles)
+        else:
+            object.__setattr__(self, "remaining_cycles", int(self.remaining_cycles))
+
+        if self.health_index is None:
+            # Derived health index percentage in [0, 100]
+            hi = max(0.0, min(100.0, (rem_h / 2000.0) * 100.0))
+            object.__setattr__(self, "health_index", round(hi, 1))
+        else:
+            object.__setattr__(self, "health_index", round(float(self.health_index), 1))
+
+        if self.uncertainty_hours is None:
+            unc = max(0.0, float(self.tte_hours_upper - self.tte_hours_lower) / 2.0)
+            object.__setattr__(self, "uncertainty_hours", round(unc, 1))
+        else:
+            object.__setattr__(self, "uncertainty_hours", round(float(self.uncertainty_hours), 1))
 
     @property
     def is_uncertain(self) -> bool:
@@ -218,6 +247,10 @@ class RulEstimate:
             "model_status": self.model_status.value,
             "contributing_faults": dict(self.contributing_faults),
             "notes": list(self.notes),
+            "remaining_hours": float(self.remaining_hours),
+            "remaining_cycles": int(self.remaining_cycles),
+            "health_index": float(self.health_index),
+            "uncertainty_hours": float(self.uncertainty_hours),
         }
         return out
 

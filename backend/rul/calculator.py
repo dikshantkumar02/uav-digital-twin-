@@ -32,6 +32,7 @@ from backend.simulation import EngineState
 from .aggregate import aggregate, new_trend_history, update_trend_history
 from .model import (
     ClosedFormWearRate,
+    HybridRulModel,
     TrainedWearModel,
     load_model as load_trained_wear_model,
 )
@@ -69,7 +70,7 @@ class RulCalculator:
         Optional trained :class:`TrainedWearModel`. If ``None``,
         the closed-form fallback is used.
     horizon_hours:
-        MC simulation horizon (default 5000 h).
+        MC simulation horizon (default 2000 h).
     n_samples:
         Number of MC trajectories (default 200).
     seed:
@@ -89,6 +90,7 @@ class RulCalculator:
     ) -> None:
         self._cfg = cfg
         self._wear_model: ClosedFormWearRate = ClosedFormWearRate.from_config(cfg)
+        self._hybrid_model = HybridRulModel()
         self._trained: Optional[TrainedWearModel] = model
         if model_path is not None:
             self._trained = load_trained_wear_model(Path(model_path))
@@ -166,6 +168,16 @@ class RulCalculator:
         residual_trend: Optional[ResidualTrendInput] = None,
         time_s: Optional[float] = None,
         dt_s: float = DEFAULT_DT_S,
+        rpm: Optional[float] = None,
+        cht_c: Optional[float] = None,
+        egt_c: Optional[float] = None,
+        oil_pressure_bar: Optional[float] = None,
+        oil_temperature_c: Optional[float] = None,
+        fuel_flow_lph: Optional[float] = None,
+        vibration_rms_g: Optional[float] = None,
+        mission_phase: Optional[str] = None,
+        engine_age_hours: Optional[float] = None,
+        cumulative_cycles: Optional[int] = None,
     ) -> RulEstimate:
         """Compute the RUL estimate for the current tick.
 
@@ -174,21 +186,21 @@ class RulCalculator:
         health:
             Current :class:`HealthIndex` (PHASE 10).
         state:
-            Optional current :class:`EngineState`. If provided,
-            the engine's ``wear`` value overrides the health
-            index's ``wear`` (truth wins).
+            Optional current :class:`EngineState`.
         residual_trend:
-            Optional :class:`ResidualTrendInput` carrying the
-            recent Digital Twin residual history. When ``None``
-            the residual-trend feature columns default to 0
-            (the model still works; it just doesn't see the
-            trend signal).
+            Optional :class:`ResidualTrendInput` carrying recent residual history.
         time_s:
-            Time stamp. Defaults to the engine state's time, or to
-            the health index's time, or to ``0.0``.
+            Time stamp (s).
         dt_s:
-            Mission dt in seconds (used to advance the internal
-            mission clock).
+            Mission dt in seconds.
+        rpm, cht_c, egt_c, oil_pressure_bar, oil_temperature_c, fuel_flow_lph, vibration_rms_g:
+            Telemetry inputs used to derive physics degradation.
+        mission_phase:
+            Current mission phase (e.g. Takeoff, Climb, Cruise, etc.).
+        engine_age_hours:
+            Total accrued engine operating hours.
+        cumulative_cycles:
+            Total accrued thermal/mission cycles.
         """
         # Resolve the timestamp.
         ts: float
@@ -199,18 +211,74 @@ class RulCalculator:
         else:
             ts = float(health.time_s)
 
-        # Resolve the current wear value.
-        if state is not None and state.wear is not None:
-            current_wear = float(state.wear)
+        # Resolve telemetry and wear values from EngineState if provided.
+        if state is not None:
+            if rpm is None:
+                rpm = float(state.rpm)
+            if cht_c is None:
+                cht_c = float(state.cht_c)
+            if egt_c is None:
+                egt_c = float(state.egt_c)
+            if oil_pressure_bar is None:
+                oil_pressure_bar = float(state.oil_pressure_psi) * 0.06894757
+            if oil_temperature_c is None:
+                oil_temperature_c = float(state.oil_temperature_c)
+            if fuel_flow_lph is None:
+                fuel_flow_lph = float(state.fuel_flow_lph)
+            if vibration_rms_g is None:
+                vibration_rms_g = float(state.vibration_rms_g)
+            current_wear = float(state.wear) if state.wear is not None else 0.0
         elif health.wear is not None:
             current_wear = float(health.wear)
         else:
             current_wear = 0.0
 
-        # Advance the mission clock.
+        # Nominal telemetry defaults if unmeasured
+        if rpm is None:
+            rpm = 4800.0
+        if cht_c is None:
+            cht_c = 120.0
+        if egt_c is None:
+            egt_c = 780.0
+        if oil_pressure_bar is None:
+            oil_pressure_bar = 4.0
+        if oil_temperature_c is None:
+            oil_temperature_c = 95.0
+        if fuel_flow_lph is None:
+            fuel_flow_lph = 16.0
+        if vibration_rms_g is None:
+            vibration_rms_g = 0.65
+
+        # Total accrued engine hours
+        if engine_age_hours is None:
+            engine_age_hours = current_wear * float(self._cfg.degradation.max_wear) * 2000.0 + self._hours_running
+
+        # Fault severity from health index
+        fault_severity = sum(
+            float(prob) for prob in (health.contributing_faults or {}).values()
+        )
+
+        # Advance mission clock
         self._hours_running += float(dt_s) / 3600.0
 
-        # Compute the wear rate (prefer trained model over closed form).
+        # Evaluate authoritative Hybrid RUL model
+        hybrid_res = self._hybrid_model.evaluate(
+            rpm=rpm,
+            cht_c=cht_c,
+            egt_c=egt_c,
+            oil_pressure_bar=oil_pressure_bar,
+            oil_temp_c=oil_temperature_c,
+            fuel_flow_lph=fuel_flow_lph,
+            vibration_rms_g=vibration_rms_g,
+            mission_phase=mission_phase,
+            engine_age_hours=engine_age_hours,
+            cumulative_cycles=cumulative_cycles,
+            fault_severity=fault_severity,
+            wear=current_wear,
+            health_score=health.overall_score,
+        )
+
+        # Compute wear rate (prefer trained model over closed form if explicit model loaded)
         if self._trained is not None:
             wear_rate = self._trained.rate_per_hour(
                 health, hours_running=self._hours_running,
@@ -218,14 +286,12 @@ class RulCalculator:
             )
             model_status = RulModelStatus.MODEL_CALIBRATED
         else:
-            wear_rate = self._wear_model.rate_per_hour(
-                health, hours_running=self._hours_running,
-            )
+            wear_rate = self._wear_model.rate_per_hour(health)
             model_status = RulModelStatus.CLOSED_FORM
-        wear_rate = max(0.0, float(wear_rate))
+        wear_rate = max(0.0001, float(wear_rate))
 
-        # Run the Monte-Carlo simulation.
-        tte = simulate_tte(
+        # Run Monte-Carlo simulation with calibrated Rotax 914 horizon
+        tte_dist = simulate_tte(
             wear_model=self._wear_model if self._trained is None else _TrainedAdapter(self._trained),
             current_health=health,
             current_wear=current_wear,
@@ -240,6 +306,26 @@ class RulCalculator:
             seed=self._seed + self._update_count,
         )
 
+        if self._trained is not None:
+            rem_hours = float(tte_dist.central)
+            lo_bound = float(tte_dist.lower)
+            hi_bound = float(tte_dist.upper)
+            conf = float(tte_dist.confidence)
+        else:
+            rem_hours = float(hybrid_res["remaining_hours"])
+            lo_bound = float(hybrid_res["lower_hours"])
+            hi_bound = float(hybrid_res["upper_hours"])
+            conf = float(hybrid_res["confidence"])
+
+        tte = TteDistribution(
+            samples=tte_dist.samples,
+            central=rem_hours,
+            lower=lo_bound,
+            upper=hi_bound,
+            confidence=conf,
+            mean_wear_rate=wear_rate,
+        )
+
         est = aggregate(
             time_s=ts,
             health=health,
@@ -247,6 +333,10 @@ class RulCalculator:
             wear_rate_per_hour=wear_rate,
             model_status=model_status,
             trend_history=self._trend,
+            remaining_hours=rem_hours,
+            remaining_cycles=hybrid_res["remaining_cycles"],
+            health_index=hybrid_res["health_index"],
+            uncertainty_hours=hybrid_res["uncertainty_hours"],
         )
         update_trend_history(self._trend, est.tte_hours_central)
         self._last = est

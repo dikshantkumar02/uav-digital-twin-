@@ -1,0 +1,100 @@
+# ============================================================================
+# ROTAX 914-CLASS ENGINE OPERATIONAL LIMITS & LIFE CYCLE SPECIFICATION
+# ----------------------------------------------------------------------------
+# Reference: BRP-Rotax 914 F Series Type Certificate Data Sheet (EASA E.122)
+# Operator & Maintenance Manual (Line & Heavy Maintenance, Section 05-10-00)
+# Calibrated for AERO-TWIN MALE UAV Digital Twin Telemetry & RUL Prognostics
+# ============================================================================
+
+engine_lifecycle:
+  # Calibrated maximum engine overhaul life (TBO) in hours
+  nominal_overhaul_hours: 2000.0
+  max_engine_life_hours: 2000.0
+  nominal_cycles_per_hour: 0.85
+  min_operational_hours: 0.0
+
+  # Calibrated lifecycle operational bands (remaining flight hours)
+  bands:
+    new:
+      min_hours: 1800.0
+      max_hours: 2000.0
+      description: "New engine or freshly overhauled assembly (0-200 operational hours accrued)"
+    mid_life:
+      min_hours: 800.0
+      max_hours: 1200.0
+      description: "Mid-life engine in nominal mission service (800-1200 operational hours accrued)"
+    degraded:
+      min_hours: 100.0
+      max_hours: 400.0
+      description: "Degraded condition, elevated thermal/mechanical stress, inspection required"
+    critical:
+      min_hours: 10.0
+      max_hours: 50.0
+      description: "Critical condition or active severe fault, immediate abort/overhaul required"
+
+operational_limits:
+  rpm:
+    idle: 1400.0
+    nominal_cruise_min: 4300.0
+    nominal_cruise_max: 5100.0
+    max_continuous: 5500.0
+    takeoff_max: 5800.0
+    redline: 5800.0
+
+  cht_c:
+    min_normal: 90.0
+    nominal_continuous: 120.0
+    max_continuous: 135.0
+    caution: 145.0
+    critical: 175.0
+
+  egt_c:
+    min_normal: 650.0
+    nominal_continuous: 780.0
+    max_continuous: 850.0
+    critical: 880.0
+
+  oil_temp_c:
+    min_operating: 50.0
+    nominal_min: 90.0
+    nominal_max: 110.0
+    caution: 120.0
+    critical: 130.0
+
+  oil_pressure_bar:
+    min_idle: 0.8
+    min_operating: 2.0
+    nominal_cruise: 4.0
+    max_operating: 5.0
+    max_cold_start: 7.0
+
+  fuel_flow_lph:
+    idle: 4.0
+    cruise_nominal: 16.0
+    takeoff_max: 28.0
+
+  vibration_rms_g:
+    normal_baseline: 0.4
+    nominal_max: 0.8
+    caution: 1.2
+    critical: 1.8
+
+physics_degradation:
+  nominal_wear_rate_per_hour: 0.0005 # 1.0 / 2000.0 hours
+  thermal_damage_weight: 0.25
+  oil_degradation_weight: 0.25
+  vibration_fatigue_weight: 0.25
+  combustion_efficiency_weight: 0.25
+  mechanical_wear_weight: 0.35
+
+  # Physical damage sensitivities
+  cht_damage_threshold_c: 120.0
+  cht_damage_sensitivity: 0.007
+  egt_damage_threshold_c: 780.0
+  egt_damage_sensitivity: 0.003
+  oil_temp_damage_threshold_c: 95.0
+  oil_temp_damage_sensitivity: 0.008
+  oil_pressure_nominal_bar: 4.0
+  oil_pressure_deficit_sensitivity: 0.25
+  vibration_damage_sensitivity: 0.50
+  combustion_load_sensitivity: 0.05

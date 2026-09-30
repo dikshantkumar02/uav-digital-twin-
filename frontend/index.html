@@ -23,16 +23,11 @@
     <aside id="sidebar-nav" aria-label="Main Navigation">
       <div class="sidebar-brand">
         <div class="brand-badge">
-          <svg class="brand-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-            stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
-            <polygon points="12 2 2 7 12 12 22 7 12 2"></polygon>
-            <polyline points="2 17 12 22 22 17"></polyline>
-            <polyline points="2 12 12 17 22 12"></polyline>
-          </svg>
+          <img src="/assets/garudh_logo.jpg" alt="GARUDH" class="brand-logo-img" />
         </div>
         <div class="brand-info">
-          <span class="brand-title">UAV Piston</span>
-          <span class="brand-sub">DIGITAL TWIN v2.4</span>
+          <span class="brand-title">GARUDH UAV Piston</span>
+          <span class="brand-sub">DIGITAL TWIN v2.4 by Team Shivam</span>
         </div>
       </div>
 
@@ -42,10 +37,12 @@
         <button class="nav-item active" data-section="overview" type="button">
           <svg class="nav-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
             stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <rect x="3" y="3" width="7" height="7"></rect>
-            <rect x="14" y="3" width="7" height="7"></rect>
-            <rect x="14" y="14" width="7" height="7"></rect>
-            <rect x="3" y="14" width="7" height="7"></rect>
+            <circle cx="12" cy="12" r="9"></circle>
+            <line x1="12" y1="3" x2="12" y2="7"></line>
+            <line x1="12" y1="17" x2="12" y2="21"></line>
+            <line x1="3" y1="12" x2="7" y2="12"></line>
+            <line x1="17" y1="12" x2="21" y2="12"></line>
+            <circle cx="12" cy="12" r="2"></circle>
           </svg>
           <span class="nav-label">Mission Overview</span>
         </button>
@@ -53,53 +50,66 @@
         <button class="nav-item" data-section="replay" type="button">
           <svg class="nav-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
             stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <polygon points="5 3 19 12 5 21 5 3"></polygon>
+            <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"></path>
+            <path d="M3 3v5h5"></path>
+            <polyline points="12 7 12 12 15 15"></polyline>
           </svg>
           <span class="nav-label">Mission Replay</span>
-          <!-- <span class="nav-pill replay-pill">MVP</span> -->
         </button>
 
         <button class="nav-item" data-section="charts" type="button">
           <svg class="nav-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
             stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"></polyline>
+            <path d="M3 3v18h18"></path>
+            <polyline points="7 14 11 8 15 12 21 4"></polyline>
+            <polyline points="7 18 12 13 16 17 21 10"></polyline>
           </svg>
           <span class="nav-label">Telemetry Charts</span>
-          <!-- <span class="nav-pill">8 CH</span> -->
         </button>
 
         <button class="nav-item" data-section="diagnostics" type="button">
           <svg class="nav-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
             stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
+            <rect x="4" y="4" width="16" height="16" rx="2"></rect>
+            <rect x="9" y="9" width="6" height="6"></rect>
+            <line x1="9" y1="1" x2="9" y2="4"></line>
+            <line x1="15" y1="1" x2="15" y2="4"></line>
+            <line x1="9" y1="20" x2="9" y2="23"></line>
+            <line x1="15" y1="20" x2="15" y2="23"></line>
+            <line x1="20" y1="9" x2="23" y2="9"></line>
+            <line x1="20" y1="15" x2="23" y2="15"></line>
+            <line x1="1" y1="9" x2="4" y2="9"></line>
+            <line x1="1" y1="15" x2="4" y2="15"></line>
           </svg>
-          <span class="nav-label">Diagnostics & Subsystems</span>
+          <span class="nav-label">Diagnostics &amp; Subsystems</span>
         </button>
 
         <button class="nav-item" data-section="maintenance" type="button">
           <svg class="nav-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
             stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="12" r="3"></circle>
             <path
-              d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z">
+              d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z">
             </path>
           </svg>
           <span class="nav-label">Predictive Maintenance</span>
-          <!-- <span class="nav-pill">RUL</span> -->
         </button>
 
         <button class="nav-item" data-section="environment" type="button">
           <svg class="nav-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
             stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <path d="M17.5 19H9a7 7 0 1 1 6.71-9h1.79a4.5 4.5 0 1 1 0 9Z"></path>
+            <path
+              d="M17.8 19.2 16 11l3.5-3.5C21 6 21.5 4 21 3c-1-.5-3 0-4.5 1.5L13 8 4.8 6.2c-.5-.1-.9.1-1.1.5l-.3.5c-.2.5-.1 1 .3 1.3L9 12l-2 3H4l-1 1 3 2 2 3 1-1v-3l3-2 3.5 5.3c.3.4.8.5 1.3.3l.5-.2c.4-.3.6-.7.5-1.2z">
+            </path>
           </svg>
-          <span class="nav-label">Environment & Flight</span>
+          <span class="nav-label">Environment &amp; Flight</span>
         </button>
         <button class="nav-item" data-section="alerts" type="button">
           <svg class="nav-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
             stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path>
-            <line x1="12" y1="9" x2="12" y2="13"></line>
-            <line x1="12" y1="17" x2="12.01" y2="17"></line>
+            <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
+            <line x1="12" y1="8" x2="12" y2="12"></line>
+            <line x1="12" y1="16" x2="12.01" y2="16"></line>
           </svg>
           <span class="nav-label">Alerts</span>
           <span class="nav-pill pill-alert" id="nav-alerts-badge">2 ACT</span>
@@ -126,6 +136,17 @@
 
       <!-- PERSISTENT TOP HEADER -->
       <header id="header">
+        <div class="gcs-badge" title="Ground Control Station">
+          <svg class="gcs-icon" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+            stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M4 11a9 9 0 0 1 9 9"></path>
+            <path d="M4 4a16 16 0 0 1 16 16"></path>
+            <circle cx="5" cy="19" r="1.5"></circle>
+          </svg>
+          <span class="gcs-text">Ground Control Station</span>
+          <span class="gcs-tag">C2</span>
+        </div>
+
         <div class="live-pill" title="Live Telemetry Ingestion Active">
           <span class="pulse-beacon"></span>
           <span class="pulse-label">LIVE TELEMETRY</span>
@@ -134,21 +155,18 @@
         <div class="header-divider"></div>
 
         <div class="meta-tag">
-          <span class="meta-label">PHASE</span>
+          <span class="meta-label">FLIGHT PHASE</span>
           <span class="meta-value" id="meta-mission-phase">—</span>
         </div>
 
         <div class="meta-tag">
-          <span class="meta-label">MET</span>
-          <span class="meta-value mono" id="meta-time">t = 0.0 s</span>
+          <span class="meta-label">Mission Elapsed Time</span>
+          <span class="meta-value mono" id="meta-time">t = 0.0 sec</span>
         </div>
 
-        <span class="grow"></span>
-
-        <div class="meta-tag" id="meta-alert-counts" title="Active alerts">
-          <span class="meta-label">ALERTS</span>
-          <span class="meta-value">0 / 0 / 0</span>
-        </div>
+        <button id="themeToggle" class="theme-toggle" title="Toggle theme">
+          🌙
+        </button>
 
         <button id="alert-center-toggle" type="button" title="Open alert center">
           <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"
@@ -161,7 +179,7 @@
         </button>
 
         <div class="scenario-selector-wrap">
-          <label class="scenario-label" for="scenario-select">SCENARIO</label>
+          <label class="scenario-label" for="scenario-select">FAULTS SCENARIO</label>
           <div class="custom-select-wrap">
             <select id="scenario-select">
               <option>loading…</option>
@@ -178,7 +196,7 @@
       <section id="top-strip">
         <div class="tile" id="tile-engine">
           <div class="tile-header">
-            <span class="tile-label">Engine Status</span>
+            <span class="tile-label">Engine Condition</span>
             <span class="tile-chip" id="tile-engine-chip">—</span>
           </div>
           <div class="tile-value" id="tile-engine-value">—</div>
@@ -189,7 +207,7 @@
         </div>
         <div class="tile" id="tile-health">
           <div class="tile-header">
-            <span class="tile-label">Health Index</span>
+            <span class="tile-label">Engine Health Index</span>
             <span class="tile-chip" id="tile-health-chip">—</span>
           </div>
           <div class="tile-value" id="tile-health-value">—</div>
@@ -294,17 +312,49 @@
 
           <!-- Operations Snapshot Cards -->
           <div class="overview-center" id="right-col">
-            <div class="card">
+            <div class="card mission-timeline-card">
               <div class="card-header">
-                <h2>Mission Timeline & Phase</h2>
-                <span class="card-tag">FLIGHT OPS</span>
+                <div class="defense-title-row">
+                  <span class="defense-blip"></span>
+                  <h2>Mission Timeline &amp; Phase</h2>
+                </div>
+                <div class="defense-header-tags">
+                  <span class="card-tag defense-tag-c2">C2 // TELEM</span>
+                  <span class="card-tag">FLIGHT OPS</span>
+                </div>
               </div>
-              <div class="timeline">
-                <div class="fill" id="timeline-fill" style="width:0%"></div>
+              <div class="defense-phase-row">
+                <div class="defense-phase-cell">
+                  <span class="defense-lbl">ACTIVE PHASE</span>
+                  <div class="defense-phase-pill">
+                    <span class="phase-led"></span>
+                    <span class="phase-val mono" id="timeline-phase">—</span>
+                  </div>
+                </div>
+                <div class="defense-waypoint-flow mono">
+                  <span class="wp-step">PREFLIGHT</span>
+                  <span class="wp-arrow">›</span>
+                  <span class="wp-step">CLIMB</span>
+                  <span class="wp-arrow">›</span>
+                  <span class="wp-step">CRUISE</span>
+                  <span class="wp-arrow">›</span>
+                  <span class="wp-step">LOITER</span>
+                  <span class="wp-arrow">›</span>
+                  <span class="wp-step">RECOVERY</span>
+                </div>
               </div>
-              <div class="timeline-meta">
-                <span class="k">CURRENT PHASE</span>
-                <span class="v" id="timeline-phase">—</span>
+              <div class="defense-track-container">
+                <div class="timeline defense-timeline">
+                  <div class="timeline-ticks"></div>
+                  <div class="fill defense-fill" id="timeline-fill" style="width:0%">
+                    <div class="fill-lead-pip"></div>
+                  </div>
+                </div>
+                <div class="defense-scale mono">
+                  <span>0% [DEP]</span>
+                  <span class="scale-mid">MIL-STD TRACK</span>
+                  <span>100% [ARR]</span>
+                </div>
               </div>
             </div>
 
@@ -319,13 +369,71 @@
                 </div>
               </div>
 
-              <div class="card">
-                <div class="card-header">
-                  <h2>Event Log Stream</h2>
-                  <span class="card-tag">LIVE</span>
+              <div class="card event-log-card">
+                <div class="card-header event-card-header">
+                  <div class="event-header-left">
+                    <h2>Event Log Stream</h2>
+                    <span class="event-stream-badge" id="event-stream-badge">
+                      <span class="event-pulse-dot" id="event-pulse-dot"></span>
+                      <span id="event-stream-status-text">LIVE</span>
+                    </span>
+                    <span class="event-count-chip" id="event-total-count">0 events</span>
+                  </div>
+                  <div class="event-header-right">
+                    <span class="event-last-time mono" id="event-last-time">Last: —</span>
+                    <span class="card-tag">FLIGHT OPS</span>
+                  </div>
                 </div>
+
+                <div class="event-toolbar">
+                  <div class="event-filter-group" role="tablist">
+                    <button class="event-filter-btn active" data-filter="all" type="button">All <span
+                        class="filter-count" id="filter-cnt-all">0</span></button>
+                    <button class="event-filter-btn" data-filter="risk" type="button">Risk <span class="filter-count"
+                        id="filter-cnt-risk">0</span></button>
+                    <button class="event-filter-btn" data-filter="fault" type="button">Faults <span class="filter-count"
+                        id="filter-cnt-fault">0</span></button>
+                    <button class="event-filter-btn" data-filter="sensor" type="button">Sensors <span
+                        class="filter-count" id="filter-cnt-sensor">0</span></button>
+                  </div>
+                  <div class="event-controls-group">
+                    <div class="event-search-wrap">
+                      <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                        stroke-width="2.2">
+                        <circle cx="11" cy="11" r="8"></circle>
+                        <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+                      </svg>
+                      <input type="text" id="event-search-input" placeholder="Filter events..." autocomplete="off" />
+                    </div>
+                    <button id="event-pause-btn" class="event-action-icon-btn" type="button"
+                      title="Pause / Resume live event stream">
+                      <svg id="event-pause-icon" width="11" height="11" viewBox="0 0 24 24" fill="currentColor">
+                        <rect x="6" y="4" width="4" height="16"></rect>
+                        <rect x="14" y="4" width="4" height="16"></rect>
+                      </svg>
+                      <span id="event-pause-text">Pause</span>
+                    </button>
+                    <button id="event-clear-btn" class="event-action-icon-btn" type="button"
+                      title="Clear displayed event history">
+                      <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                        stroke-width="2">
+                        <polyline points="3 6 5 6 21 6"></polyline>
+                        <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+                      </svg>
+                    </button>
+                  </div>
+                </div>
+
+                <div class="event-paused-notice hidden" id="event-paused-notice">
+                  <span>Stream paused • <strong id="event-paused-count">0</strong> new events buffered</span>
+                  <button id="event-resume-btn" type="button">Resume</button>
+                </div>
+
                 <div id="events-list">
-                  <div class="insufficient">No events recorded</div>
+                  <div class="event-empty-state">
+                    <div class="empty-title">No events recorded yet</div>
+                    <div class="empty-sub">Engine monitoring events will appear here when detected.</div>
+                  </div>
                 </div>
               </div>
             </div>
@@ -333,24 +441,108 @@
             <div class="overview-cards-row" id="bottom-strip">
               <div class="card" id="bottom-conf">
                 <div class="card-header">
-                  <h2>Digital Twin Model Confidence</h2>
+                  <div class="conf-hdr-title">
+                    <h2>Digital Twin Model Confidence</h2>
+                    <span class="conf-status-badge opt" id="model-conf-status-badge">OPTIMAL</span>
+                  </div>
                   <span class="card-tag">FIDELITY</span>
                 </div>
-                <div class="conf-bar">
-                  <div class="fill" id="model-conf-fill" style="width:0%"></div>
+
+                <div class="conf-hero-block">
+                  <div class="conf-hero-left">
+                    <span class="conf-hero-pct mono" id="model-conf-pct">—%</span>
+                    <span class="conf-hero-sub">System Fidelity Score: <strong class="mono"
+                        id="model-conf-value">—</strong></span>
+                  </div>
+                  <div class="conf-hero-right">
+                    <span class="conf-badge-pill" id="model-conf-calib">CALIBRATED</span>
+                  </div>
                 </div>
-                <div class="conf-row">
-                  <span class="k">Aggregated Confidence</span>
-                  <span class="v" id="model-conf-value">—</span>
+
+                <div class="conf-bar-container">
+                  <div class="conf-bar">
+                    <div class="fill" id="model-conf-fill" style="width:0%"></div>
+                  </div>
+                  <div class="conf-scale-ticks">
+                    <span>0%</span>
+                    <span>50%</span>
+                    <span>75%</span>
+                    <span>90%</span>
+                    <span>100%</span>
+                  </div>
+                </div>
+
+                <div class="conf-subsystems-grid">
+                  <div class="conf-sub-card">
+                    <div class="conf-sub-top">
+                      <span class="k">Residual Sync</span>
+                      <span class="v mono" id="conf-sub-residual">—%</span>
+                    </div>
+                    <div class="conf-mini-bar">
+                      <div class="conf-mini-fill" id="conf-sub-residual-fill" style="width:0%"></div>
+                    </div>
+                  </div>
+                  <div class="conf-sub-card">
+                    <div class="conf-sub-top">
+                      <span class="k">RUL Prognostics</span>
+                      <span class="v mono" id="conf-sub-rul">—%</span>
+                    </div>
+                    <div class="conf-mini-bar">
+                      <div class="conf-mini-fill" id="conf-sub-rul-fill" style="width:0%"></div>
+                    </div>
+                  </div>
+                  <div class="conf-sub-card">
+                    <div class="conf-sub-top">
+                      <span class="k">AI Risk Engine</span>
+                      <span class="v mono" id="conf-sub-risk">—%</span>
+                    </div>
+                    <div class="conf-mini-bar">
+                      <div class="conf-mini-fill" id="conf-sub-risk-fill" style="width:0%"></div>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="conf-meta-row">
+                  <span class="mono" id="conf-meta-info">Model: phase17-streaming · Data Quality: 100%</span>
                 </div>
               </div>
 
               <div class="card" id="bottom-latency">
                 <div class="card-header">
-                  <h2>Pipeline Telemetry Latency</h2>
+                  <div class="latency-hdr-title">
+                    <h2>Pipeline Telemetry Latency</h2>
+                    <span class="latency-status-badge opt" id="latency-status-badge">&lt; 10ms ULTRA-FAST</span>
+                  </div>
                   <span class="card-tag">REALTIME</span>
                 </div>
-                <div id="latency-body"></div>
+
+                <div class="latency-hero-block">
+                  <div class="latency-hero-left">
+                    <span class="latency-hero-val mono" id="latency-hero-val">— ms</span>
+                    <span class="latency-hero-sub">Total End-to-End Loop · <strong>Target &lt; 20 ms</strong></span>
+                  </div>
+                  <div class="latency-hero-right">
+                    <span class="latency-badge-pill mono" id="latency-hz-pill">~170 Hz LOOP</span>
+                  </div>
+                </div>
+
+                <div class="latency-stacked-bar-wrap">
+                  <div class="latency-stacked-bar" id="latency-stacked-bar">
+                    <div class="stg-segment stg-ingest" id="lat-seg-ingest" style="width: 10%" title="Sensor Ingestion">
+                    </div>
+                    <div class="stg-segment stg-twin" id="lat-seg-twin" style="width: 5%" title="Physics Digital Twin">
+                    </div>
+                    <div class="stg-segment stg-ai" id="lat-seg-ai" style="width: 80%" title="AI Neural Inference">
+                    </div>
+                    <div class="stg-segment stg-risk" id="lat-seg-risk" style="width: 5%" title="Risk Engine"></div>
+                  </div>
+                </div>
+
+                <div id="latency-body" class="latency-stages-list"></div>
+
+                <div class="latency-meta-row">
+                  <span class="mono" id="latency-meta-info">Timing Margin: 88% of 50ms budget · Zero packet drops</span>
+                </div>
               </div>
             </div>
           </div>
@@ -1480,6 +1672,29 @@
   <!-- Chart.js (UMD) — pinned for reproducibility -->
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
   <script src="/assets/dashboard.js?v=20260930_2"></script>
+  <script>
+    const root = document.documentElement;
+    const toggle = document.getElementById("themeToggle");
+
+    function applyTheme(isDark) {
+      root.setAttribute("data-theme", isDark ? "dark" : "light");
+      root.classList.toggle("dark", isDark);
+      root.classList.toggle("light", !isDark);
+      if (toggle) toggle.textContent = isDark ? "☀️" : "🌙";
+      localStorage.setItem("theme", isDark ? "dark" : "light");
+    }
+
+    const savedTheme = localStorage.getItem("theme");
+    const initDark = savedTheme ? savedTheme === "dark" : false;
+    applyTheme(initDark);
+
+    if (toggle) {
+      toggle.addEventListener("click", () => {
+        const currentDark = root.getAttribute("data-theme") === "dark" || root.classList.contains("dark");
+        applyTheme(!currentDark);
+      });
+    }
+  </script>
 </body>
 
 </html>

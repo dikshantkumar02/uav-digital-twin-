@@ -38,6 +38,10 @@ def aggregate(
     model_status: RulModelStatus,
     trend_history: Optional[Deque[float]] = None,
     notes: Optional[list[str]] = None,
+    remaining_hours: Optional[float] = None,
+    remaining_cycles: Optional[int] = None,
+    health_index: Optional[float] = None,
+    uncertainty_hours: Optional[float] = None,
 ) -> RulEstimate:
     """Combine TTE distribution + health into a :class:`RulEstimate`.
 
@@ -105,6 +109,10 @@ def aggregate(
         model_status=model_status,
         contributing_faults=dict(health.contributing_faults or {}),
         notes=final_notes,
+        remaining_hours=remaining_hours,
+        remaining_cycles=remaining_cycles,
+        health_index=health_index,
+        uncertainty_hours=uncertainty_hours,
     )
 
 
